@@ -37,13 +37,7 @@ Requirements: PHP 8.2+ with `pdo_mysql`, `fileinfo` and `mbstring` · Composer 2
    php artisan migrate --seed
    ```
 
-4. Optional: load sample people, projects and history. Every demo account's password is `password`.
-
-   ```bash
-   php artisan db:seed --class=DemoSeeder
-   ```
-
-5. Build the assets and start the app:
+4. Build the assets and start the app:
 
    ```bash
    npm run build
@@ -53,15 +47,7 @@ Requirements: PHP 8.2+ with `pdo_mysql`, `fileinfo` and `mbstring` · Composer 2
    php artisan serve
    ```
 
-Open <http://127.0.0.1:8000> and sign in with the administrator from `.env`. The demo data adds these accounts:
-
-| Username | Role |
-|---|---|
-| `victoria.santos` | Executive |
-| `jamie.reyes` | Department manager (IT) |
-| `andrea.cruz` | Department manager (Marketing) |
-| `miguel.tan`, `paolo.garcia`, `bea.mendoza`, `rina.flores` | Members |
-| `carlo.lim` | Intern (IT) |
+Open <http://127.0.0.1:8000> and sign in with the administrator from `.env`.
 
 For development with hot reload, run this instead of `serve` + `build`:
 
