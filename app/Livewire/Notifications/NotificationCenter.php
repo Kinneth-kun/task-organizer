@@ -9,7 +9,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Notifications')]
+#[Title('Activity Logs')]
 class NotificationCenter extends Component
 {
     use Toasts, WithPagination;
@@ -41,7 +41,7 @@ class NotificationCenter extends Component
     public function clearRead(): void
     {
         auth()->user()->readNotifications()->delete();
-        $this->toast('Read notifications cleared.', 'info');
+        $this->toast('Read entries cleared.', 'info');
     }
 
     public function render(): View

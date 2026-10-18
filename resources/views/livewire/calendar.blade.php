@@ -47,7 +47,7 @@
                                 </a>
                             @endforeach
                             @foreach ($dayTasks->take(4) as $t)
-                                <a href="{{ route('tasks.show', $t) }}" class="flex items-center gap-1.5 truncate rounded px-1.5 py-0.5 text-[11px] hover:bg-slate-100 dark:hover:bg-slate-800 {{ $t->isOverdue() ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300' }}"
+                                <a href="{{ route('tasks.show', $t) }}" class="flex items-center gap-1.5 truncate rounded px-1.5 py-0.5 text-[11px] hover:bg-slate-100 dark:hover:bg-slate-800 {{ $t->isOverdue() ? 'font-medium text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300' }}"
                                    title="{{ $t->title }}{{ $t->project ? ' · '.$t->project->name : '' }} · {{ $t->status->label() }}">
                                     <span class="h-1.5 w-1.5 shrink-0 rounded-full {{ \App\Support\Palette::dot($t->status->color()) }}"></span>
                                     <span class="truncate {{ in_array($t->status->value, ['completed', 'cancelled']) ? 'line-through' : '' }}">{{ $t->title }}</span>

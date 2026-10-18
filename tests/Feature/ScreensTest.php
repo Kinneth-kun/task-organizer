@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\NotificationType;
 use App\Enums\TaskStatus;
 use App\Enums\UserRole;
 use App\Livewire\Admin\SettingsPage;
@@ -18,6 +19,7 @@ use App\Models\Attachment;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\AppNotification;
 use App\Services\ProjectService;
 use App\Services\TaskService;
 use App\Support\Settings;
@@ -257,5 +259,25 @@ class ScreensTest extends TestCase
         $this->assertSame('ICM Tasks', Settings::string('general.app_name'));
 
         Livewire::actingAs($member->refresh())->test(SettingsPage::class)->assertForbidden();
+    }
+
+    public function test_activity_logs_list_notifications_in_a_table(): void
+    {
+        $admin = $this->person(UserRole::Admin);
+        $admin->notify(new AppNotification(NotificationType::TaskAssigned, 'You were assigned "Write report"', 'Due Friday'));
+
+        $this->actingAs($admin)->get(route('notifications.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['Activity Logs', 'Audit trail'])
+            ->assertDontSee('> Notifications', false)
+            ->assertSee('<table class="table">', false)
+            ->assertSeeInOrder(['When', 'Type', 'Activity', 'Details', 'Status'])
+            ->assertSee('You were assigned &quot;Write report&quot;', false)
+            ->assertSee('Due Friday')
+            ->assertSee('Unread')
+            ->assertSee('x-data="confirmDialog"', false);
+
+        $this->actingAs($admin)->get(route('admin.users.index'))->assertOk();
+        $this->assertSame('Department Supervisor', UserRole::Manager->label());
     }
 }

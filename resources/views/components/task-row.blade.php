@@ -32,7 +32,7 @@
                 <span class="{{ \App\Support\Palette::text($task->priority->color()) }} font-medium">{{ $task->priority->label() }}</span>
             @endif
             @if ($due)
-                <span class="{{ $overdue ? 'font-medium text-rose-600 dark:text-rose-400' : ($task->due_date->isToday() ? 'font-medium text-amber-600 dark:text-amber-400' : '') }}">{{ $due }}</span>
+                <span class="{{ $overdue || $task->due_date->isToday() ? 'font-medium text-slate-700 dark:text-slate-200' : '' }}">{{ $due }}</span>
             @elseif ($task->due_date)
                 <span>{{ $task->due_date->format('M j') }}</span>
             @endif

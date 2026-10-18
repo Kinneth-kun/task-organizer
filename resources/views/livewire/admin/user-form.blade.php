@@ -41,15 +41,6 @@
                     @error('password') <p class="error">{{ $message }}</p> @enderror
                 </div>
             </div>
-            <div>
-                <span class="label">Avatar colour</span>
-                <div class="flex flex-wrap gap-2">
-                    @foreach (\App\Support\Palette::CHOICES as $choice)
-                        <button type="button" wire:click="$set('avatarColor', '{{ $choice }}')" aria-label="{{ $choice }}"
-                                class="h-7 w-7 rounded-full {{ \App\Support\Palette::dot($choice) }} {{ $avatarColor === $choice ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-900' : '' }}"></button>
-                    @endforeach
-                </div>
-            </div>
             <label class="flex items-center gap-2 text-sm">
                 <input type="checkbox" class="checkbox" wire:model="isActive" @disabled($user && $user->id === auth()->id())> Account is active
             </label>

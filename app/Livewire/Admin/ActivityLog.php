@@ -12,7 +12,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
 
-#[Title('Activity logs')]
+#[Title('Audit trail')]
 class ActivityLog extends Component
 {
     use WithPagination;

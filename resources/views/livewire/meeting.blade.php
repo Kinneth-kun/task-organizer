@@ -50,7 +50,7 @@
                             <span class="text-2xl font-bold tabular-nums">{{ $project->progress }}%</span>
                         </div>
                     @empty
-                        <p class="text-lg text-emerald-400">Every project is on track. 🎉</p>
+                        <p class="text-lg text-slate-300">Every project is on track. 🎉</p>
                     @endforelse
                 </div>
             </div>
@@ -58,13 +58,13 @@
                 <h2 class="mb-5 text-3xl font-semibold tracking-tight">Delayed tasks</h2>
                 <div class="space-y-2">
                     @forelse ($delayedTasks as $task)
-                        <div class="flex items-center gap-3 rounded-xl bg-red-500/10 px-4 py-3">
+                        <div class="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
                             <x-avatar :user="$task->assignee" size="h-8 w-8 text-xs" />
                             <div class="min-w-0 flex-1"><p class="truncate font-medium">{{ $task->title }}</p><p class="truncate text-sm text-slate-400">{{ $task->project?->name ?? 'Standalone' }} · {{ $task->assignee?->name ?? 'Unassigned' }}</p></div>
-                            <span class="text-sm font-medium text-red-300">{{ $task->dueLabel() ?? 'Delayed' }}</span>
+                            <span class="text-sm font-medium text-slate-200">{{ $task->dueLabel() ?? 'Delayed' }}</span>
                         </div>
                     @empty
-                        <p class="text-lg text-emerald-400">No delayed tasks.</p>
+                        <p class="text-lg text-slate-300">No delayed tasks.</p>
                     @endforelse
                 </div>
             </div>
@@ -107,8 +107,8 @@
             <h2 class="mb-5 text-3xl font-semibold tracking-tight">Completed in the last 7 days</h2>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 @forelse ($wins as $task)
-                    <div class="flex items-center gap-3 rounded-xl bg-emerald-500/10 px-4 py-3">
-                        <x-icon name="check-circle" class="h-6 w-6 text-emerald-400" />
+                    <div class="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+                        <x-icon name="check-circle" class="h-6 w-6 text-slate-300" />
                         <div class="min-w-0 flex-1"><p class="truncate font-medium">{{ $task->title }}</p><p class="truncate text-sm text-slate-400">{{ $task->assignee?->name ?? '—' }} · {{ $task->project?->name ?? 'Standalone' }}</p></div>
                     </div>
                 @empty

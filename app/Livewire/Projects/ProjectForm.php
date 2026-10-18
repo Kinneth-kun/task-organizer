@@ -100,7 +100,7 @@ class ProjectForm extends Component
         }
     }
 
-    /** Who may own a project: oversight roles and department managers pick anyone; others own their own. */
+    /** Who may own a project: oversight roles and department supervisors pick anyone; others own their own. */
     #[Computed]
     public function canPickOwner(): bool
     {

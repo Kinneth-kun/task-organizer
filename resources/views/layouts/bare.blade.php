@@ -21,5 +21,6 @@
 <body class="h-full">
     {{ $slot }}
     @include('partials.toasts')
+    @include('partials.confirm')
 </body>
 </html>

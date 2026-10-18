@@ -6,8 +6,8 @@ A role-based project and task management system that combines **TaskFlow** (Lara
 - **Projects:** health scoring, Kanban board, team roles and suggestions.
 - **Tasks:** standalone tasks, subtasks up to three levels deep with automatic progress roll-up, append-only history and auto-delay.
 - **Collaboration:** remarks with proof of work and supervisor review, comments with @mentions, file attachments, Focus of the Day and "currently working on".
-- **Notifications:** a notification centre with optional email, and a weekday 8:00 am briefing.
-- **Oversight:** an executive dashboard, meeting mode, user and department management, settings, activity logs and CSV exports.
+- **Activity Logs:** a table of your notifications with optional email, and a weekday 8:00 am briefing.
+- **Oversight:** an executive dashboard, meeting mode, user and department management, settings, an audit trail and CSV exports.
 
 **Stack:** PHP 8.2+ · Laravel 12 · Livewire 4 (Alpine.js) · Tailwind CSS 4 · MySQL 8 (SQLite for tests) ·
 spatie/laravel-activitylog.
@@ -62,8 +62,8 @@ It starts the server, a queue worker, the log viewer and Vite together.
 | Role | Can |
 |---|---|
 | **Administrator** | Everything: users, departments, settings, meeting mode, every project and task |
-| **Executive** | See every project and task, the executive dashboard and activity logs. Changes only the tasks they are on |
-| **Department manager** | Manage every project and task in their own department, and review remarks |
+| **Executive** | See every project and task, the executive dashboard and the audit trail. Changes only the tasks they are on |
+| **Department supervisor** | Manage every project and task in their own department, and review remarks |
 | **Member** | Work on projects they own or belong to, and tasks they're assigned to or collaborate on |
 | **Intern** | Work only on tasks assigned to them. Can't create projects or assign other people |
 

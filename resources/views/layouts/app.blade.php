@@ -54,16 +54,16 @@
             </a>
         @endforeach
         <a href="{{ route('notifications.index') }}" class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
-            <x-icon name="bell" class="h-5 w-5" /> Notifications
+            <x-icon name="bell" class="h-5 w-5" /> Activity Logs
             @if ($unread)
-                <span class="ml-auto rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">{{ $unread > 99 ? '99+' : $unread }}</span>
+                <span class="ml-auto rounded-full bg-slate-700 px-1.5 py-0.5 text-[10px] font-semibold text-white dark:bg-slate-200 dark:text-slate-900">{{ $unread > 99 ? '99+' : $unread }}</span>
             @endif
         </a>
 
         @can('full-access')
             <p class="nav-section">Oversight</p>
             <a href="{{ route('executive') }}" class="nav-link {{ request()->routeIs('executive') ? 'active' : '' }}"><x-icon name="chart" class="h-5 w-5" /> Executive dashboard</a>
-            <a href="{{ route('admin.activity') }}" class="nav-link {{ request()->routeIs('admin.activity') ? 'active' : '' }}"><x-icon name="history" class="h-5 w-5" /> Activity logs</a>
+            <a href="{{ route('admin.activity') }}" class="nav-link {{ request()->routeIs('admin.activity') ? 'active' : '' }}"><x-icon name="history" class="h-5 w-5" /> Audit trail</a>
         @endcan
 
         @can('admin')
@@ -132,5 +132,6 @@
 </div>
 
 @include('partials.toasts')
+@include('partials.confirm')
 </body>
 </html>

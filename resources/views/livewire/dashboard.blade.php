@@ -23,10 +23,10 @@
 
     {{-- My working session --}}
     @if ($this->mySession)
-        <div class="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-500/30 dark:bg-emerald-500/10">
-            <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span></span>
-            <p class="flex-1 text-sm text-emerald-800 dark:text-emerald-200">
-                You're working on <a href="{{ route('tasks.show', $this->mySession->task) }}" class="font-semibold underline decoration-emerald-300">{{ $this->mySession->task->title }}</a>
+        <div class="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/60">
+            <span class="relative flex h-2.5 w-2.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-400 opacity-75"></span><span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-slate-500"></span></span>
+            <p class="flex-1 text-sm text-slate-700 dark:text-slate-200">
+                You're working on <a href="{{ route('tasks.show', $this->mySession->task) }}" class="font-semibold underline decoration-slate-300">{{ $this->mySession->task->title }}</a>
                 · since {{ $this->mySession->started_at->format('g:i A') }}
             </p>
             <button type="button" class="btn btn-secondary btn-sm" wire:click="stopWorking"><x-icon name="stop" class="h-4 w-4" /> Stop</button>
@@ -51,19 +51,19 @@
             {{-- Focus of the Day --}}
             <section class="card">
                 <div class="card-header">
-                    <h2 class="card-title flex items-center gap-2"><x-icon name="star" class="h-4 w-4 text-amber-500" /> Focus of the Day</h2>
+                    <h2 class="card-title flex items-center gap-2"><x-icon name="star" class="h-4 w-4 text-slate-500" /> Focus of the Day</h2>
                     <span class="text-xs text-slate-400">Pinned ☆ tasks, then overdue and due today</span>
                 </div>
                 <div class="divider">
                     @forelse ($this->focus as $task)
                         <x-task-row :task="$task" wire:key="focus-{{ $task->id }}">
                             <x-slot:actions>
-                                <span class="hidden text-[11px] font-medium uppercase tracking-wide lg:inline {{ match ($task->focus_reason) { 'pinned' => 'text-amber-500', 'overdue' => 'text-rose-500', default => 'text-sky-500' } }}">
+                                <span class="hidden text-[11px] font-medium uppercase tracking-wide lg:inline text-slate-500">
                                     {{ match ($task->focus_reason) { 'pinned' => 'Pinned', 'overdue' => 'Overdue', default => 'Today' } }}
                                 </span>
                                 <div class="flex shrink-0 items-center opacity-60 group-hover:opacity-100">
                                     @if ($task->focus_reason === 'pinned')
-                                        <button type="button" class="icon-btn" wire:click="unpin({{ $task->id }})" title="Unpin"><x-icon name="star" class="h-4 w-4 fill-amber-400 text-amber-500" /></button>
+                                        <button type="button" class="icon-btn" wire:click="unpin({{ $task->id }})" title="Unpin"><x-icon name="star" class="h-4 w-4 fill-slate-500 text-slate-600" /></button>
                                     @endif
                                     <button type="button" class="icon-btn" wire:click="dismissFocus({{ $task->id }})" title="Not today"><x-icon name="eye-slash" class="h-4 w-4" /></button>
                                 </div>
@@ -132,7 +132,7 @@
             {{-- Currently working --}}
             <section class="card">
                 <div class="card-header">
-                    <h2 class="card-title flex items-center gap-2"><x-icon name="bolt" class="h-4 w-4 text-sky-500" /> Currently working</h2>
+                    <h2 class="card-title flex items-center gap-2"><x-icon name="bolt" class="h-4 w-4 text-slate-500" /> Currently working</h2>
                     <span class="text-xs text-slate-400">{{ $this->working->count() }} {{ str('person')->plural($this->working->count()) }}</span>
                 </div>
                 <div class="p-2">

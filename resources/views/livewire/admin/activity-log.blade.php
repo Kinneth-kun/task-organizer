@@ -1,5 +1,5 @@
 <div>
-    <x-page-header title="Activity logs" description="Who did what, and when — sign-ins, changes to tasks and projects, and administration." />
+    <x-page-header title="Audit trail" description="Who did what, and when — sign-ins, changes to tasks and projects, and administration." />
 
     <div class="card mb-4 flex flex-wrap items-center gap-3 p-3">
         <div class="relative min-w-48 flex-1">

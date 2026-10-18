@@ -52,7 +52,7 @@
                 <div class="flex h-4 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                     @foreach (\App\Enums\TaskStatus::cases() as $st)
                         @if ($dist[$st->value])
-                            <div class="{{ \App\Support\Palette::dot($st->color()) }}" style="width: {{ $dist[$st->value] / $total * 100 }}%" title="{{ $st->label() }}: {{ $dist[$st->value] }}"></div>
+                            <div class="border-r border-white last:border-r-0 dark:border-slate-900 {{ \App\Support\Palette::dot($st->color()) }}" style="width: {{ $dist[$st->value] / $total * 100 }}%" title="{{ $st->label() }}: {{ $dist[$st->value] }}"></div>
                         @endif
                     @endforeach
                 </div>
@@ -81,8 +81,8 @@
                         <td class="tabular-nums">{{ $row['people'] }}</td>
                         <td class="tabular-nums">{{ $row['open'] }}</td>
                         <td class="tabular-nums">{{ $row['in_progress'] }}</td>
-                        <td class="tabular-nums {{ $row['delayed'] ? 'font-semibold text-rose-600' : '' }}">{{ $row['delayed'] }}</td>
-                        <td class="tabular-nums text-emerald-600">{{ $row['done30'] }}</td>
+                        <td class="tabular-nums {{ $row['delayed'] ? 'font-semibold' : '' }}">{{ $row['delayed'] }}</td>
+                        <td class="tabular-nums">{{ $row['done30'] }}</td>
                         <td class="tabular-nums">{{ $row['unreviewed'] }}</td>
                     </tr>
                 @endforeach
@@ -118,7 +118,7 @@
                         <td class="text-sm">{{ $project->department?->name ?? '—' }}</td>
                         <td><x-progress :value="$project->progress" :label="true" /></td>
                         <td><x-status :value="$project->health" /></td>
-                        <td class="text-sm {{ $project->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $project->due_date?->format('M j, Y') ?? '—' }}</td>
+                        <td class="text-sm {{ $project->isOverdue() ? 'font-semibold' : '' }}">{{ $project->due_date?->format('M j, Y') ?? '—' }}</td>
                         <td class="tabular-nums">{{ $project->open_tasks_count }}</td>
                     </tr>
                 @empty

@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Who can see and change what — including department walls, department managers and interns.
+ * Who can see and change what — including department walls, department supervisors and interns.
  */
 class AccessTest extends TestCase
 {

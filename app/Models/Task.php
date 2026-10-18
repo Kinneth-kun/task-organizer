@@ -204,7 +204,7 @@ class Task extends Model
      *  - Administrators and executives: every task.
      *  - Everyone: tasks they are assigned to, created or collaborate on.
      *  - Members and managers: their own department's tasks in projects they own, created or belong to.
-     *  - Department managers: every task owned by their department.
+     *  - Department supervisors: every task owned by their department.
      *  - Interns: only the first rule.
      */
     public function scopeVisibleTo(Builder $query, User $user): Builder

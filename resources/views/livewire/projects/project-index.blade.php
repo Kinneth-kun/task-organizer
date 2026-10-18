@@ -63,7 +63,7 @@
                         </div>
                         <div class="text-right">
                             <p>{{ $project->open_tasks_count }} open of {{ $project->total_tasks_count }} tasks</p>
-                            <p class="{{ $project->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $project->due_date ? 'Due '.$project->due_date->format('M j, Y') : 'No due date' }}</p>
+                            <p class="{{ $project->isOverdue() ? 'font-semibold text-slate-700 dark:text-slate-200' : '' }}">{{ $project->due_date ? 'Due '.$project->due_date->format('M j, Y') : 'No due date' }}</p>
                         </div>
                     </div>
 

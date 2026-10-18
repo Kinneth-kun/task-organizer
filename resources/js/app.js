@@ -1,6 +1,92 @@
 import './bootstrap'
 
 /*
+ * In-app confirmation dialog (resources/views/partials/confirm.blade.php), used instead of the
+ * browser's confirm() so no "localhost says" pop-up appears.
+ *
+ *   window.appConfirm('Delete this task? Its history is kept.').then(ok => ...)
+ *
+ * The first sentence becomes the title and the rest the message. Messages starting with a
+ * destructive verb get a red button labelled with that verb.
+ */
+const DESTRUCTIVE = ['Delete', 'Remove', 'Deactivate', 'Clear']
+
+function describe(text) {
+    let [, title, message] = text.match(/^(.*?[?.!])\s+([\s\S]+)$/) ?? [null, text, '']
+    let verb = DESTRUCTIVE.find((word) => text.startsWith(word + ' '))
+
+    return { title, message, danger: !!verb, confirmText: verb ?? 'Confirm', cancelText: 'Cancel' }
+}
+
+window.appConfirm = (text, options = {}) =>
+    new Promise((resolve) => {
+        window.dispatchEvent(new CustomEvent('confirm-dialog', { detail: { ...describe(text), ...options, resolve } }))
+    })
+
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('confirmDialog', () => ({
+        open: false,
+        title: '',
+        message: '',
+        danger: false,
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+        resolve: null,
+
+        show(detail) {
+            // A new question replaces any one still open.
+            this.answer(false)
+            Object.assign(this, detail)
+            this.open = true
+            this.$nextTick(() => this.$refs.confirm.focus())
+        },
+
+        answer(ok) {
+            let resolve = this.resolve
+            this.resolve = null
+            this.open = false
+            if (resolve) resolve(ok)
+        },
+    }))
+})
+
+document.addEventListener('livewire:init', () => {
+    // Route wire:confirm through the in-app dialog. Runs after Livewire's own confirm directive
+    // has set el.__livewire_confirm, and replaces it.
+    window.Livewire.hook('directive.init', ({ el, directive }) => {
+        if (directive.value !== 'confirm' || directive.modifiers.includes('prompt')) return
+
+        let text = directive.expression.replaceAll('\\n', '\n') || 'Are you sure?'
+        el.__livewire_confirm = (action) => {
+            window.appConfirm(text).then((ok) => ok && action())
+        }
+    })
+
+    // Livewire's own "page has expired" and "empty response" questions also use confirm().
+    let asking = false
+    let askToRefresh = (text) => {
+        if (asking) return
+        asking = true
+        window.appConfirm(text, { confirmText: 'Refresh page' }).then((ok) => {
+            asking = false
+            if (ok) window.location.reload()
+        })
+    }
+
+    window.Livewire.interceptRequest(({ onError }) => {
+        onError(({ response, body, preventDefault }) => {
+            if (response.status === 419) {
+                preventDefault()
+                askToRefresh('This page has expired. Refresh the page to continue.')
+            } else if (response.ok && (body ?? '').trim() === '') {
+                preventDefault()
+                askToRefresh('The server returned an empty response. Refresh the page to continue.')
+            }
+        })
+    })
+})
+
+/*
  * @mention autocomplete for remark and comment boxes.
  *
  *   <div x-data="mentions" class="relative">

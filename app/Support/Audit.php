@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Models\Activity;
 
 /**
- * The audit trail behind Admin → Activity Logs.
+ * The audit trail behind Oversight → Audit trail.
  *
  *     Audit::log('task.created', 'Created task "Brief"', $task);
  *

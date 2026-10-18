@@ -9,7 +9,7 @@ use App\Models\User;
  * Who may see and change a task. Administrators pass every check (Gate::before).
  *
  * Executives see every task but only change the ones they are personally on. Project roles reach
- * only the tasks of the user's own department; department managers reach all of their
+ * only the tasks of the user's own department; department supervisors reach all of their
  * department's tasks. Interns reach only the tasks they are on.
  */
 class TaskPolicy
@@ -92,7 +92,7 @@ class TaskPolicy
     }
 
     /**
-     * Supervisors of the task: its department's manager, or a project manager of its project
+     * Supervisors of the task: its department's supervisor, or a project manager of its project
      * within the same department.
      */
     private function manages(User $user, Task $task): bool

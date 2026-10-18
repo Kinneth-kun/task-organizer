@@ -8,7 +8,7 @@ enum UserRole: string
 
     /** Everything, including users, departments, settings and meeting mode. */
     case Admin = 'admin';
-    /** Sees every project and task, the executive dashboard and activity logs. */
+    /** Sees every project and task, the executive dashboard and the audit trail. */
     case Executive = 'executive';
     /** Manages every project and task in their own department. */
     case Manager = 'manager';
@@ -22,7 +22,7 @@ enum UserRole: string
         return match ($this) {
             self::Admin => 'Administrator',
             self::Executive => 'Executive',
-            self::Manager => 'Department Manager',
+            self::Manager => 'Department Supervisor',
             self::Member => 'Member',
             self::Intern => 'Intern',
         };
@@ -43,7 +43,7 @@ enum UserRole: string
     {
         return match ($this) {
             self::Admin => 'Full control: users, departments, settings, meeting mode and every project and task.',
-            self::Executive => 'Oversight of every project and task, the executive dashboard and activity logs.',
+            self::Executive => 'Oversight of every project and task, the executive dashboard and the audit trail.',
             self::Manager => 'Manages every project and task in their own department and reviews remarks.',
             self::Member => 'Works on projects they belong to and tasks they are assigned to.',
             self::Intern => 'Works only on tasks assigned to them; cannot create projects or assign others.',

@@ -93,7 +93,7 @@ class PagesTest extends TestCase
         return [
             'administrator' => ['admin'],
             'executive' => ['victoria.santos'],
-            'department manager' => ['jamie.reyes'],
+            'department supervisor' => ['jamie.reyes'],
             'member' => ['miguel.tan'],
             'intern' => ['carlo.lim'],
         ];

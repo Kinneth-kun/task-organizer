@@ -42,7 +42,7 @@
         </x-slot:meta>
         <x-slot:actions>
             <button type="button" class="btn btn-secondary" wire:click="toggleFocus" title="{{ $pinned ? 'Unpin from Focus of the Day' : 'Pin to Focus of the Day' }}">
-                <x-icon name="star" class="h-4 w-4 {{ $pinned ? 'fill-amber-400 text-amber-500' : '' }}" /> {{ $pinned ? 'Pinned' : 'Pin' }}
+                <x-icon name="star" class="h-4 w-4 {{ $pinned ? 'fill-slate-500 text-slate-600' : '' }}" /> {{ $pinned ? 'Pinned' : 'Pin' }}
             </button>
             @if ($canUpdate && $task->isOpen())
                 @if ($workingHere)
@@ -260,7 +260,7 @@
                         <div><dt class="text-xs text-slate-500">Department</dt><dd class="mt-0.5">{{ $task->department?->name ?? '—' }}</dd></div>
                         <div><dt class="text-xs text-slate-500">Created by</dt><dd class="mt-0.5">{{ $task->creator?->name }}</dd></div>
                         <div><dt class="text-xs text-slate-500">Start</dt><dd class="mt-0.5">{{ $task->start_date?->format('M j, Y') ?? '—' }}</dd></div>
-                        <div><dt class="text-xs text-slate-500">Due</dt><dd class="mt-0.5 {{ $task->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $task->due_date?->format('M j, Y') ?? '—' }}</dd></div>
+                        <div><dt class="text-xs text-slate-500">Due</dt><dd class="mt-0.5 {{ $task->isOverdue() ? 'font-semibold' : '' }}">{{ $task->due_date?->format('M j, Y') ?? '—' }}</dd></div>
                         <div><dt class="text-xs text-slate-500">Created</dt><dd class="mt-0.5">{{ $task->created_at->format('M j, Y') }}</dd></div>
                         <div><dt class="text-xs text-slate-500">Completed</dt><dd class="mt-0.5">{{ $task->completed_at?->format('M j, Y') ?? '—' }}</dd></div>
                         @if ($task->latest_update_at)
@@ -272,7 +272,7 @@
 
             @if ($this->workingNow->isNotEmpty())
                 <section class="card card-body">
-                    <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-600"><x-icon name="bolt" class="h-3.5 w-3.5" /> Working on this now</p>
+                    <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300"><x-icon name="bolt" class="h-3.5 w-3.5" /> Working on this now</p>
                     @foreach ($this->workingNow as $session)
                         <div class="flex items-center gap-2 py-1 text-sm">
                             <x-avatar :user="$session->user" size="h-6 w-6 text-[10px]" /> {{ $session->user->name }}

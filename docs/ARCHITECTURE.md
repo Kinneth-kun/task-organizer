@@ -32,7 +32,7 @@ Every task change goes through one service class, which keeps these consistent:
 | Focus of the Day: "not today" | TaskFlow | `focus_dismissals` |
 | "Currently working on" | TaskFlow | One session per person, expires after 8 hours |
 | Intern role | TaskFlow | |
-| Department managers | TaskFlow | Department-wide management |
+| Department supervisors | TaskFlow | Department-wide management |
 | Admin-managed departments | TaskFlow | Seeded with to-do-system's 8 |
 | Department walls | to-do-system | |
 | Executive dashboard, meeting mode | to-do-system | |
@@ -74,7 +74,7 @@ All of these are enforced in `app/Services/`.
 A task's department follows its assignee, or its creator if unassigned. That drives two rules:
 
 - **Department walls:** members see only their own department's tasks inside their projects.
-- **Department managers** see and manage every task in their department.
+- **Department supervisors** see and manage every task in their department.
 
 ### History
 

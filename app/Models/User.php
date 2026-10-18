@@ -125,7 +125,7 @@ class User extends Authenticatable
         return $this->role->hasFullAccess();
     }
 
-    /** A department manager acting on something owned by their own department. */
+    /** A department supervisor acting on something owned by their own department. */
     public function managesDepartment(?int $departmentId): bool
     {
         return $this->isManager() && $departmentId !== null && $this->department_id === $departmentId;

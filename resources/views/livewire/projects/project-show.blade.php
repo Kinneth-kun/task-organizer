@@ -17,7 +17,7 @@
                 @endif
                 <span class="text-xs text-slate-500">
                     Owner {{ $project->owner?->name }}
-                    @if ($project->due_date) · due <span class="{{ $project->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $project->due_date->format('M j, Y') }}</span> @endif
+                    @if ($project->due_date) · due <span class="{{ $project->isOverdue() ? 'font-semibold' : '' }}">{{ $project->due_date->format('M j, Y') }}</span> @endif
                 </span>
             </div>
         </x-slot:meta>
@@ -63,7 +63,7 @@
         </div>
         <div class="card p-4">
             <p class="text-xs font-medium text-slate-500">Delayed</p>
-            <p class="mt-1 text-2xl font-semibold tabular-nums {{ $eval['stats']['delayed'] ? 'text-rose-600' : '' }}">{{ $eval['stats']['delayed'] }}</p>
+            <p class="mt-1 text-2xl font-semibold tabular-nums">{{ $eval['stats']['delayed'] }}</p>
             <p class="mt-1 text-xs text-slate-400">{{ $eval['stats']['delayed_percent'] }}% of open work</p>
         </div>
         <div class="card p-4">
@@ -129,7 +129,7 @@
         @if ($project->isCompleted() || $postLaunch->isNotEmpty())
             <section class="card mt-6 overflow-hidden">
                 <div class="card-header">
-                    <h2 class="card-title flex items-center gap-2"><x-icon name="sparkles" class="h-4 w-4 text-violet-500" /> Enhancements & updates</h2>
+                    <h2 class="card-title flex items-center gap-2"><x-icon name="sparkles" class="h-4 w-4 text-slate-500" /> Enhancements & updates</h2>
                     <span class="text-xs text-slate-400">Post-launch work · not counted in progress or health</span>
                 </div>
                 <div class="divider">
@@ -166,7 +166,7 @@
                                 @endif
                                 <x-progress :value="$task->progress" class="mt-2" />
                                 <div class="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                                    <span class="{{ $task->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $task->due_date?->format('M j') ?? 'No date' }}</span>
+                                    <span class="{{ $task->isOverdue() ? 'font-semibold' : '' }}">{{ $task->due_date?->format('M j') ?? 'No date' }}</span>
                                     <div class="flex items-center gap-1.5">
                                         @if ($task->children_count)
                                             <span title="Follows its subtasks"><x-icon name="lock" class="h-3.5 w-3.5" /></span>

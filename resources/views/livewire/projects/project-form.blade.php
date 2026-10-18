@@ -45,7 +45,7 @@
                             <option value="{{ $d->id }}">{{ $d->name }}</option>
                         @endforeach
                     </select>
-                    <p class="hint">The department's manager can oversee this project.</p>
+                    <p class="hint">The department's supervisor can oversee this project.</p>
                 </div>
                 <div>
                     <label class="label" for="priority">Priority</label>
@@ -54,15 +54,6 @@
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div>
-                    <span class="label">Colour</span>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach (\App\Support\Palette::CHOICES as $choice)
-                            <button type="button" wire:click="$set('color', '{{ $choice }}')" aria-label="{{ $choice }}"
-                                    class="h-7 w-7 rounded-full {{ \App\Support\Palette::dot($choice) }} {{ $color === $choice ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-900' : '' }}"></button>
-                        @endforeach
-                    </div>
                 </div>
             </div>
         </div>

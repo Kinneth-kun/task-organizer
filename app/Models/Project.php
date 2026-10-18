@@ -121,7 +121,7 @@ class Project extends Model
     /* ------------------------------------------------------------------ Scopes */
 
     /**
-     * Projects a user may see: full access sees all; a department manager sees their department's;
+     * Projects a user may see: full access sees all; a department supervisor sees their department's;
      * everyone else sees projects they own, created or belong to.
      */
     public function scopeVisibleTo(Builder $query, User $user): Builder

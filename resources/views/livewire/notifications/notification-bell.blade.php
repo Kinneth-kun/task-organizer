@@ -2,7 +2,7 @@
     <button type="button" class="icon-btn relative" @click="open = !open" aria-label="Notifications">
         <x-icon name="bell" class="h-6 w-6" />
         @if ($unread)
-            <span class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">{{ $unread > 9 ? '9+' : $unread }}</span>
+            <span class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-slate-700 px-1 dark:bg-slate-200 dark:text-slate-900 text-[10px] font-semibold text-white">{{ $unread > 9 ? '9+' : $unread }}</span>
         @endif
     </button>
 
@@ -33,6 +33,6 @@
                 <x-empty icon="bell" title="You're all caught up" class="py-8" />
             @endforelse
         </div>
-        <a href="{{ route('notifications.index') }}" class="block border-t border-slate-100 px-4 py-2.5 text-center text-xs font-medium text-indigo-600 hover:bg-slate-50 dark:border-slate-800 dark:text-indigo-400 dark:hover:bg-slate-800/50">View all notifications</a>
+        <a href="{{ route('notifications.index') }}" class="block border-t border-slate-100 px-4 py-2.5 text-center text-xs font-medium text-indigo-600 hover:bg-slate-50 dark:border-slate-800 dark:text-indigo-400 dark:hover:bg-slate-800/50">View all in Activity Logs</a>
     </div>
 </div>
