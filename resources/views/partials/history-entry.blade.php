@@ -51,7 +51,8 @@
             <div class="prose-text mt-1 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/60">{{ \App\Support\Text::render($entry->remark) }}</div>
         @endif
         @if (! empty($meta['requested_status']))
-            <p class="mt-1 text-xs text-slate-400">Kept as Delayed because the task is past its due date.</p>
+            {{-- Older entries, from when overdue tasks were marked Delayed automatically. --}}
+            <p class="mt-1 text-xs text-slate-400">Kept as Delayed because the task was past its due date.</p>
         @endif
     </div>
 </li>

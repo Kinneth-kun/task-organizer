@@ -12,7 +12,6 @@ use App\Livewire\Dashboard;
 use App\Livewire\Projects\ProjectForm;
 use App\Livewire\Projects\ProjectIndex;
 use App\Livewire\Projects\ProjectShow;
-use App\Livewire\QuickCreate;
 use App\Livewire\Tasks\TaskForm;
 use App\Livewire\Tasks\TaskShow;
 use App\Models\Attachment;
@@ -94,6 +93,9 @@ class ScreensTest extends TestCase
             ->call('openSubtask')
             ->set('subTitle', 'Step one')
             ->call('addSubtask')
+            ->assertHasErrors(['subDue' => 'required'])
+            ->set('subDue', today()->addDays(3)->toDateString())
+            ->call('addSubtask')
             ->assertHasNoErrors()
             ->call('toggleFocus')
             ->call('startWorking');
@@ -164,16 +166,32 @@ class ScreensTest extends TestCase
             ->call('toggleMember', $member->id)
             ->set('taskRows.0.title', 'Book movers')
             ->set('taskRows.0.subtasks', "Get quotes\nSign contract")
+            ->call('addRow')
+            ->set('taskRows.1.title', 'Pack boxes')
+            ->set('taskRows.1.due_date', today()->addDays(3)->toDateString())
+            ->call('save')
+            ->assertHasErrors(['taskRows.0.start_date', 'taskRows.0.due_date'])
+            ->assertHasNoErrors(['taskRows.1.start_date', 'taskRows.1.due_date'])
+            ->set('taskRows.0.start_date', today()->toDateString())
+            ->set('taskRows.0.due_date', today()->subDay()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['taskRows.0.due_date'])
+            ->set('taskRows.0.start_date', today()->toDateString())
+            ->set('taskRows.0.due_date', today()->addWeek()->toDateString())
             ->call('save')
             ->assertHasNoErrors()
             ->assertRedirect();
 
         $project = Project::where('name', 'Office move')->firstOrFail();
         $this->assertTrue($project->isMember($member));
-        $this->assertSame(3, $project->tasks()->count());
+        $this->assertSame(4, $project->tasks()->count());
+        foreach ($project->tasks()->whereNotNull('parent_id')->get() as $subtask) {
+            $this->assertSame(today()->toDateString(), $subtask->start_date->toDateString());
+            $this->assertSame(today()->addWeek()->toDateString(), $subtask->due_date->toDateString());
+        }
     }
 
-    public function test_creating_tasks_from_the_form_and_quick_create(): void
+    public function test_creating_tasks_from_the_form(): void
     {
         $member = $this->person();
 
@@ -188,13 +206,31 @@ class ScreensTest extends TestCase
         $task = Task::where('title', 'From the form')->firstOrFail();
         $this->assertSame(TaskStatus::InProgress, $task->status);
         $this->assertSame(today()->addDays(3)->toDateString(), $task->due_date->toDateString());
+    }
 
-        Livewire::actingAs($member)->test(QuickCreate::class)
-            ->call('openModal')
-            ->set('title', 'Quick one')
-            ->call('save')
-            ->assertHasNoErrors();
-        $this->assertDatabaseHas('tasks', ['title' => 'Quick one', 'assignee_id' => $member->id]);
+    public function test_project_status_filter_defaults_to_all_projects(): void
+    {
+        $owner = $this->person(UserRole::Admin);
+        $projects = app(ProjectService::class);
+        foreach (['active' => 'Alpha', 'on_hold' => 'Bravo', 'completed' => 'Charlie', 'cancelled' => 'Delta'] as $status => $name) {
+            $projects->create(['name' => $name], $owner)->forceFill(['status' => $status])->save();
+        }
+
+        Livewire::actingAs($owner)->test(ProjectIndex::class)
+            ->assertSet('status', 'all')
+            ->assertSeeHtml('<option value="all">All projects</option>')
+            ->assertSeeHtmlInOrder(['aria-label="Status"', '<option value="all">', '<option value="active">', '<option value="completed">', '</select>', 'aria-label="Health"'])
+            ->assertDontSee('Active & on hold')
+            ->assertDontSeeHtml('<option value="cancelled">')
+            ->assertSee(['Alpha', 'Bravo', 'Charlie', 'Delta'])
+            ->set('status', 'active')
+            ->assertSee('Alpha')->assertDontSee('Bravo')->assertDontSee('Charlie')
+            ->set('status', 'completed')
+            ->assertSee('Charlie')->assertDontSee('Alpha');
+
+        Livewire::withQueryParams(['status' => 'on_hold'])->actingAs($owner)->test(ProjectIndex::class)
+            ->assertSet('status', 'all')
+            ->assertSee(['Alpha', 'Bravo', 'Charlie', 'Delta']);
     }
 
     public function test_suggestions_on_project_cards(): void
@@ -203,7 +239,7 @@ class ScreensTest extends TestCase
         $member = $this->person();
         $project = app(ProjectService::class)->create(['name' => 'Ideas', 'members' => [['user_id' => $member->id]]], $owner);
 
-        Livewire::actingAs($member)->test(ProjectIndex::class)
+        $page = Livewire::actingAs($member)->test(ProjectIndex::class)
             ->call('openSuggestion', $project->id)
             ->set('suggestion', 'Add a FAQ page')
             ->call('saveSuggestion')
@@ -211,6 +247,18 @@ class ScreensTest extends TestCase
 
         $this->assertSame(1, $project->suggestions()->count());
         $this->assertSame(1, $owner->notifications()->where('type', 'suggestion_added')->count());
+
+        // Suggestions show one at a time; adding one rebuilds the block so only the newest shows.
+        $first = $project->suggestions()->sole();
+        $page->call('openSuggestion', $project->id)
+            ->set('suggestion', 'Add a contact form')
+            ->call('saveSuggestion')
+            ->assertHasNoErrors();
+        $second = $project->suggestions()->where('id', '!=', $first->id)->sole();
+
+        $page->assertSeeHtml('wire:key="suggestions-'.$project->id.'-'.$second->id.'-'.$first->id.'"')
+            ->assertSeeHtml('x-show="i === 0"')
+            ->assertSeeHtml('x-show="i === 1"  x-cloak');
     }
 
     public function test_dashboard_review_and_focus_actions(): void

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\TaskStatus;
+use App\Casts\HistoryStatus;
 use App\Enums\TaskUpdateType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,8 +24,8 @@ class TaskUpdate extends Model
     {
         return [
             'type' => TaskUpdateType::class,
-            'old_status' => TaskStatus::class,
-            'new_status' => TaskStatus::class,
+            'old_status' => HistoryStatus::class,
+            'new_status' => HistoryStatus::class,
             'old_progress' => 'integer',
             'new_progress' => 'integer',
             'meta' => 'array',

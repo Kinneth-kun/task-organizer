@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Support\DailyReport;
 use App\Support\TaskFilters;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -71,6 +72,39 @@ class ExportController extends Controller
                     $project->due_date?->toDateString(),
                     $project->open_tasks_count,
                     $project->completed_at?->toDateTimeString(),
+                ]);
+            }
+        });
+    }
+
+    public function dailyReport(Request $request): StreamedResponse
+    {
+        $user = $request->user();
+        $day = DailyReport::day($request->query('date'));
+        $state = array_key_exists((string) $request->query('state'), DailyReport::STATES) ? (string) $request->query('state') : '';
+        $department = $user->isSupervisor() && $request->filled('department') ? (int) $request->query('department') : null;
+
+        $remarks = DailyReport::query($user, $day, $department, $state)->get();
+        $changes = DailyReport::changes($remarks);
+        $remarks = DailyReport::byProject($remarks)->flatten(1);
+
+        return $this->csv('daily-report-'.$day->toDateString().'.csv', [
+            'Time', 'Project', 'Task', 'Parent task', 'Posted by', 'Department', 'Change', 'Update', 'Proof files', 'Reported', 'Reported by', 'Reported at',
+        ], function ($out) use ($remarks, $changes) {
+            foreach ($remarks as $remark) {
+                $this->row($out, [
+                    $remark->created_at->format('Y-m-d H:i'),
+                    $remark->task?->project?->name ?? DailyReport::STANDALONE,
+                    $remark->task?->title,
+                    $remark->task?->parent?->title,
+                    $remark->user?->name,
+                    $remark->task?->department?->name,
+                    DailyReport::describeChange($changes->get($remark->id)),
+                    $remark->body,
+                    $remark->attachments->count(),
+                    $remark->isReviewed() ? 'Yes' : 'No',
+                    $remark->reviewer?->name,
+                    $remark->reviewed_at?->format('Y-m-d H:i'),
                 ]);
             }
         });

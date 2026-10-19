@@ -55,6 +55,15 @@
                         @endforeach
                     </select>
                 </div>
+                <div>
+                    <span class="label">Colour</span>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (\App\Support\Palette::CHOICES as $choice)
+                            <button type="button" wire:click="$set('color', '{{ $choice }}')" aria-label="{{ $choice }}"
+                                    class="h-7 w-7 rounded-full {{ \App\Support\Palette::dot($choice) }} {{ $color === $choice ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-900' : '' }}"></button>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -93,7 +102,7 @@
                     <div class="mb-3 flex items-center justify-between">
                         <div>
                             <h2 class="card-title">First tasks</h2>
-                            <p class="hint">Optional. One subtask per line — they roll up into their task.</p>
+                            <p class="hint">Optional. One subtask per line — they roll up into their task and take its start and end dates.</p>
                         </div>
                         <button type="button" class="btn btn-secondary btn-sm" wire:click="addRow"><x-icon name="plus" class="h-4 w-4" /> Add task</button>
                     </div>
@@ -109,11 +118,14 @@
                                             <option value="{{ $person->id }}">{{ $person->name }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="date" class="input w-auto" wire:model="taskRows.{{ $i }}.due_date" aria-label="Due date">
+                                    <input type="date" class="input w-auto" wire:model="taskRows.{{ $i }}.start_date" aria-label="Start date" title="Start date">
+                                    <input type="date" class="input w-auto" wire:model="taskRows.{{ $i }}.due_date" aria-label="End date" title="End date">
                                     <button type="button" class="icon-btn mt-1" wire:click="removeRow({{ $i }})" title="Remove"><x-icon name="x" class="h-4 w-4" /></button>
                                 </div>
                                 <textarea rows="2" class="input mt-2 ml-8 w-[calc(100%-2rem)] text-xs" wire:model="taskRows.{{ $i }}.subtasks" placeholder="Subtasks (optional, one per line)"></textarea>
                                 @error('taskRows.'.$i.'.title') <p class="error ml-8">{{ $message }}</p> @enderror
+                                @error('taskRows.'.$i.'.start_date') <p class="error ml-8">{{ $message }}</p> @enderror
+                                @error('taskRows.'.$i.'.due_date') <p class="error ml-8">{{ $message }}</p> @enderror
                             </div>
                         @endforeach
                     </div>

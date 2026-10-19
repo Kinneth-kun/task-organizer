@@ -157,7 +157,7 @@ class Notifier
 
         $this->send([$remark->user_id], $this->forTask(
             $task, NotificationType::RemarkReviewed,
-            "{$reviewer->name} reviewed your remark on \"{$task->title}\"",
+            "{$reviewer->name} reported your update on \"{$task->title}\" in the daily report",
             '“'.Str::limit($remark->body, 160).'”',
             $reviewer,
             ['type' => 'remark', 'id' => $remark->id],
@@ -165,18 +165,6 @@ class Notifier
     }
 
     /* ------------------------------------------------------------------ System */
-
-    public function taskDelayed(Task $task): void
-    {
-        $recipients = $this->stakeholders($task)->push($task->project?->owner_id)->filter();
-
-        $this->send($this->canView($task, $recipients), $this->forTask(
-            $task, NotificationType::TaskDelayed,
-            "\"{$task->title}\" is now delayed",
-            'It was due '.$task->due_date?->format('M j, Y').' · '.$this->where($task),
-            null,
-        ), null);
-    }
 
     public function deadlineApproaching(Task $task, string $dueLabel): void
     {

@@ -41,7 +41,7 @@ ADMIN_PASSWORD=…   # a strong password; change it after first sign-in
 
 `APP_TIMEZONE` controls the following:
 
-- what counts as "today" for due dates and delays
+- what counts as "today" for due dates and overdue work
 - when the 8:00 am briefing goes out
 
 ## 2. Install and migrate
@@ -87,7 +87,7 @@ It runs:
 
 | Job | When |
 |---|---|
-| `tasks:check-deadlines` (auto-delay, reminders, health) | Every 15 minutes |
+| `tasks:check-deadlines` (reminders, health) | Every 15 minutes |
 | `digest:send` (the briefing) | Weekdays at 08:00 |
 | `active-tasks:expire` | Hourly |
 | `queue:work --stop-when-empty` (sends queued emails) | Every minute |

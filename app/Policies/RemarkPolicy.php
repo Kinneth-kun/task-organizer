@@ -7,7 +7,7 @@ use App\Models\User;
 
 class RemarkPolicy
 {
-    /** Supervisors review other people's remarks, never their own. */
+    /** Supervisors mark other people's updates as reported in the daily meeting, never their own. */
     public function review(User $user, Remark $remark): bool
     {
         return $remark->user_id !== $user->id

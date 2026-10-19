@@ -6,14 +6,16 @@ use App\Enums\ProjectHealth;
 use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Task;
+use App\Support\DailyReport;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * Full-screen view for management meetings: overview, what needs attention, what's coming up
- * and recent wins. Arrow keys move between sections.
+ * Full-screen view for management meetings: overview, the latest updates since the previous
+ * working day (the daily report), what needs attention, what's coming up and recent wins.
+ * Arrow keys move between sections.
  */
 #[Layout('layouts::bare')]
 #[Title('Meeting mode')]
@@ -29,10 +31,17 @@ class Meeting extends Component
             ->sortBy(fn (Project $p) => [$p->health->urgency(), $p->due_date?->timestamp ?? PHP_INT_MAX])
             ->values();
 
+        $since = DailyReport::meetingSince();
+        $updates = DailyReport::query(auth()->user(), [$since, today()])->limit(40)->get();
+
         return view('livewire.meeting', [
             'projects' => $projects,
+            'updatesSince' => $since,
+            'updates' => DailyReport::byProject($updates),
+            'updateChanges' => DailyReport::changes($updates),
+            'updatesPending' => $updates->whereNull('reviewed_at')->count(),
             'attention' => $projects->filter(fn (Project $p) => in_array($p->health, [ProjectHealth::Delayed, ProjectHealth::AtRisk], true))->values(),
-            'delayedTasks' => Task::query()->where('status', TaskStatus::Delayed->value)->with(['project', 'assignee'])
+            'overdueTasks' => Task::query()->overdue()->with(['project', 'assignee'])
                 ->orderBy('due_date')->limit(12)->get(),
             'upcoming' => Task::query()->open()->with(['project', 'assignee'])
                 ->whereDate('due_date', '>=', today())->whereDate('due_date', '<=', today()->addDays(7))

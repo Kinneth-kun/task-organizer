@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Comments, remark reviews, task files, Focus of the Day and "currently working on".
+ * Comments, daily-report marking, task files, Focus of the Day and "currently working on".
  */
 class CollaborationService
 {
@@ -70,12 +70,16 @@ class CollaborationService
         return $count;
     }
 
-    /* ------------------------------------------------------------------ Remark review */
+    /* ------------------------------------------------------------------ Daily report */
 
+    /**
+     * Marks an update as reported in the daily meeting. Stored as reviewed_by/reviewed_at, which
+     * predate the daily report; the audit event keeps its original name so old entries match.
+     */
     public function review(Remark $remark, User $reviewer): void
     {
         $remark->forceFill(['reviewed_by' => $reviewer->id, 'reviewed_at' => now()])->save();
-        Audit::log('remark.reviewed', "Reviewed {$remark->user?->name}'s remark on \"{$remark->task?->title}\"", $remark->task, ['remark_id' => $remark->id], $reviewer);
+        Audit::log('remark.reviewed', "Reported {$remark->user?->name}'s update on \"{$remark->task?->title}\"", $remark->task, ['remark_id' => $remark->id], $reviewer);
         $this->notifier->remarkReviewed($remark, $reviewer);
     }
 

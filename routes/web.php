@@ -11,6 +11,7 @@ use App\Livewire\Admin\SettingsPage;
 use App\Livewire\Admin\UserForm;
 use App\Livewire\Admin\UserIndex;
 use App\Livewire\Calendar;
+use App\Livewire\DailyReport;
 use App\Livewire\Dashboard;
 use App\Livewire\Executive;
 use App\Livewire\Meeting;
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::livewire('/projects/{project}/edit', ProjectForm::class)->name('projects.edit');
 
     Route::livewire('/calendar', Calendar::class)->name('calendar');
+    Route::livewire('/reports/daily', DailyReport::class)->name('reports.daily');
     Route::livewire('/search', Search::class)->name('search');
     Route::livewire('/notifications', NotificationCenter::class)->name('notifications.index');
     Route::get('/notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
@@ -56,6 +58,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/export/tasks.csv', [ExportController::class, 'tasks'])->name('export.tasks');
     Route::get('/export/projects.csv', [ExportController::class, 'projects'])->name('export.projects');
+    Route::get('/export/daily-report.csv', [ExportController::class, 'dailyReport'])->name('export.daily');
 
     Route::middleware('can:full-access')->group(function () {
         Route::livewire('/executive', Executive::class)->name('executive');

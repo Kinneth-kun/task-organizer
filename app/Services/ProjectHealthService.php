@@ -59,12 +59,10 @@ class ProjectHealthService
         return $count;
     }
 
-    /** Average progress of the project's non-cancelled top-level build tasks. */
+    /** Average progress of the project's top-level build tasks. */
     public function calculateProgress(Project $project): int
     {
-        $average = $this->buildTasks($project)
-            ->where('status', '!=', TaskStatus::Cancelled->value)
-            ->avg('progress');
+        $average = $this->buildTasks($project)->avg('progress');
 
         return (int) round((float) ($average ?? 0));
     }
@@ -82,17 +80,14 @@ class ProjectHealthService
 
         $count = fn (TaskStatus $status) => $counts[$status->value] ?? 0;
         $total = $counts->sum();
-        $nonCancelled = $total - $count(TaskStatus::Cancelled);
-        $open = $count(TaskStatus::Pending) + $count(TaskStatus::InProgress) + $count(TaskStatus::Delayed);
+        $open = $count(TaskStatus::Pending) + $count(TaskStatus::InProgress);
 
-        // Overdue tasks the delay check hasn't flagged yet still count as delayed.
-        $overdueNotFlagged = $this->buildTasks($project)
-            ->whereIn('status', [TaskStatus::Pending->value, TaskStatus::InProgress->value])
+        // Open tasks past their due date.
+        $overdue = $this->buildTasks($project)
+            ->whereIn('status', TaskStatus::openValues())
             ->whereDate('due_date', '<', today())
             ->count();
-
-        $delayed = $count(TaskStatus::Delayed) + $overdueNotFlagged;
-        $delayedPercent = $open > 0 ? round($delayed / $open * 100, 1) : 0.0;
+        $overduePercent = $open > 0 ? round($overdue / $open * 100, 1) : 0.0;
         $progress = $project->progress ?? $this->calculateProgress($project);
 
         $expected = null;
@@ -106,8 +101,8 @@ class ProjectHealthService
             'total' => $total,
             'open' => $open,
             'completed' => $count(TaskStatus::Completed),
-            'delayed' => $delayed,
-            'delayed_percent' => $delayedPercent,
+            'overdue' => $overdue,
+            'overdue_percent' => $overduePercent,
             'progress' => $progress,
             'expected_progress' => $expected ?? -1,
         ];
@@ -122,7 +117,7 @@ class ProjectHealthService
             return $result(ProjectHealth::OnHold, ["Project is {$project->status->label()}."]);
         }
 
-        if ($nonCancelled > 0 && $count(TaskStatus::Completed) === $nonCancelled) {
+        if ($total > 0 && $count(TaskStatus::Completed) === $total) {
             return $result(ProjectHealth::Completed, ['All tasks are completed.']);
         }
 
@@ -130,14 +125,14 @@ class ProjectHealthService
             return $result(ProjectHealth::Delayed, ['Project is past its due date ('.$project->due_date->format('M j, Y').').']);
         }
 
-        if ($delayed > 0 && $delayedPercent >= Settings::int('health.delayed_delayed_percent')) {
-            return $result(ProjectHealth::Delayed, ["{$delayed} of {$open} open tasks are delayed ({$delayedPercent}%)."]);
+        if ($overdue > 0 && $overduePercent >= Settings::int('health.delayed_delayed_percent')) {
+            return $result(ProjectHealth::Delayed, ["{$overdue} of {$open} open tasks are overdue ({$overduePercent}%)."]);
         }
 
         $reasons = [];
 
-        if ($delayed > 0 && $delayedPercent >= Settings::int('health.at_risk_delayed_percent')) {
-            $reasons[] = "{$delayed} of {$open} open tasks are delayed ({$delayedPercent}%).";
+        if ($overdue > 0 && $overduePercent >= Settings::int('health.at_risk_delayed_percent')) {
+            $reasons[] = "{$overdue} of {$open} open tasks are overdue ({$overduePercent}%).";
         }
 
         if ($expected !== null && $expected - $progress >= Settings::int('health.progress_gap_percent')) {
@@ -156,7 +151,7 @@ class ProjectHealthService
             return $result(ProjectHealth::AtRisk, $reasons);
         }
 
-        return $result(ProjectHealth::OnTrack, ['No delayed tasks and progress is on schedule.']);
+        return $result(ProjectHealth::OnTrack, ['No overdue tasks and progress is on schedule.']);
     }
 
     private function buildTasks(Project $project)

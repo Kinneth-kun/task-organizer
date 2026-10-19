@@ -212,7 +212,7 @@ class ProjectShow extends Component
         return view('livewire.projects.project-show', [
             'buildTasks' => $tasks->filter(fn (Task $t) => $t->category === null)->values(),
             'postLaunch' => $tasks->filter(fn (Task $t) => $t->category !== null)->values(),
-            'columns' => [TaskStatus::Pending, TaskStatus::InProgress, TaskStatus::Delayed, TaskStatus::OnHold, TaskStatus::Completed],
+            'columns' => TaskStatus::cases(),
         ])->title($this->project->name);
     }
 }

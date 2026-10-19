@@ -44,7 +44,7 @@ class ProjectForm extends Component
     /** @var array<int, string> user id => role (create only) */
     public array $members = [];
 
-    /** @var list<array{title: string, assignee_id: string, due_date: string, subtasks: string}> */
+    /** @var list<array{title: string, assignee_id: string, start_date: string, due_date: string, subtasks: string}> */
     public array $taskRows = [];
 
     public function mount(?Project $project = null): void
@@ -77,7 +77,7 @@ class ProjectForm extends Component
 
     private function blankRow(): array
     {
-        return ['title' => '', 'assignee_id' => '', 'due_date' => '', 'subtasks' => ''];
+        return ['title' => '', 'assignee_id' => '', 'start_date' => '', 'due_date' => '', 'subtasks' => ''];
     }
 
     public function addRow(): void
@@ -145,9 +145,18 @@ class ProjectForm extends Component
             'taskRows' => ['array'],
             'taskRows.*.title' => ['nullable', 'string', 'max:255'],
             'taskRows.*.assignee_id' => ['nullable', 'integer', 'exists:users,id'],
-            'taskRows.*.due_date' => ['nullable', 'date'],
+            // A task with subtasks needs both dates: its subtasks take them.
+            'taskRows.*.start_date' => ['nullable', 'date', 'required_with:taskRows.*.subtasks'],
+            'taskRows.*.due_date' => ['nullable', 'date', 'required_with:taskRows.*.subtasks'],
             'taskRows.*.subtasks' => ['nullable', 'string', 'max:5000'],
-        ], [], ['ownerId' => 'owner', 'dueDate' => 'due date', 'startDate' => 'start date', 'taskRows.*.title' => 'task title']);
+            ...collect($this->taskRows)
+                ->filter(fn ($row) => ($row['start_date'] ?? '') !== '')
+                ->mapWithKeys(fn ($row, $i) => ["taskRows.{$i}.due_date" => ["after_or_equal:taskRows.{$i}.start_date"]])
+                ->all(),
+        ], [
+            'taskRows.*.start_date.required_with' => 'Add a start date — its subtasks use it.',
+            'taskRows.*.due_date.required_with' => 'Add an end date — its subtasks use it.',
+        ], ['ownerId' => 'owner', 'dueDate' => 'due date', 'startDate' => 'start date', 'taskRows.*.title' => 'task title', 'taskRows.*.start_date' => 'start date', 'taskRows.*.due_date' => 'end date']);
 
         if (! $this->canPickOwner) {
             $data['ownerId'] = $this->project?->owner_id ?? $user->id;
@@ -182,6 +191,7 @@ class ProjectForm extends Component
                 ->map(fn ($row) => [
                     'title' => $row['title'],
                     'assignee_id' => $row['assignee_id'] ?: null,
+                    'start_date' => $row['start_date'] ?: null,
                     'due_date' => $row['due_date'] ?: null,
                     'subtasks' => array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $row['subtasks'] ?? '')))),
                 ])->values()->all(),

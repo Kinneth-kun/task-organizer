@@ -14,11 +14,9 @@
             <input type="search" class="input pl-9" placeholder="Find a project…" wire:model.live.debounce.300ms="q" aria-label="Search projects">
         </div>
         <select class="input w-auto" wire:model.live="status" aria-label="Status">
-            <option value="open">Active & on hold</option>
-            @foreach (\App\Enums\ProjectStatus::options() as $value => $label)
+            @foreach (\App\Livewire\Projects\ProjectIndex::STATUS_FILTERS as $value => $label)
                 <option value="{{ $value }}">{{ $label }}</option>
             @endforeach
-            <option value="all">All projects</option>
         </select>
         <select class="input w-auto" wire:model.live="health" aria-label="Health">
             <option value="">Any health</option>
@@ -63,7 +61,7 @@
                         </div>
                         <div class="text-right">
                             <p>{{ $project->open_tasks_count }} open of {{ $project->total_tasks_count }} tasks</p>
-                            <p class="{{ $project->isOverdue() ? 'font-semibold text-slate-700 dark:text-slate-200' : '' }}">{{ $project->due_date ? 'Due '.$project->due_date->format('M j, Y') : 'No due date' }}</p>
+                            <p class="{{ $project->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $project->due_date ? 'Due '.$project->due_date->format('M j, Y') : 'No due date' }}</p>
                         </div>
                     </div>
 
@@ -77,8 +75,11 @@
                     </div>
                 </div>
 
-                {{-- Suggestions: one at a time, newest first --}}
+                {{-- Suggestions: one at a time, newest first. The key changes whenever a suggestion is
+                     added or removed, so the block is rebuilt and the pager starts again at the newest
+                     (updating it in place would leave several suggestions showing at once). --}}
                 <div class="border-t border-slate-100 bg-slate-50/60 px-5 py-3 dark:border-slate-800 dark:bg-slate-800/30"
+                     wire:key="suggestions-{{ $project->id }}-{{ $project->suggestions->pluck('id')->join('-') }}"
                      x-data="{ i: 0, n: {{ $project->suggestions->count() }} }">
                     <div class="flex items-center justify-between">
                         <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Suggestions{{ $project->suggestions->count() ? ' · '.$project->suggestions->count() : '' }}</p>

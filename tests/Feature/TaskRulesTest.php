@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\LegacyTaskStatus;
 use App\Enums\ProjectStatus;
 use App\Enums\TaskStatus;
 use App\Enums\TaskUpdateType;
@@ -11,7 +12,6 @@ use App\Models\Task;
 use App\Models\TaskUpdate;
 use App\Services\ProjectService;
 use App\Services\TaskService;
-use App\Support\Settings;
 use App\Support\TaskTree;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -49,8 +49,14 @@ class TaskRulesTest extends TestCase
         $this->assertSame([TaskStatus::InProgress, 40], TaskService::resolve(TaskStatus::Pending, 0, null, 40));
         $this->assertSame([TaskStatus::Completed, 100], TaskService::resolve(TaskStatus::InProgress, 50, null, 100));
         $this->assertSame([TaskStatus::Pending, 0], TaskService::resolve(TaskStatus::InProgress, 50, null, 0));
-        $this->assertSame([TaskStatus::OnHold, 60], TaskService::resolve(TaskStatus::OnHold, 50, null, 60));
-        $this->assertSame([TaskStatus::Completed, 100], TaskService::resolve(TaskStatus::Delayed, 50, null, 100));
+        $this->assertSame([TaskStatus::Completed, 100], TaskService::resolve(TaskStatus::Pending, 0, TaskStatus::Completed, null));
+    }
+
+    public function test_tasks_are_only_pending_in_progress_or_completed(): void
+    {
+        $this->assertSame(['pending', 'in_progress', 'completed'], array_map(fn ($s) => $s->value, TaskStatus::cases()));
+        $this->assertNull(TaskStatus::tryFrom('delayed'));
+        $this->assertSame(TaskStatus::Pending, $this->tasks->create(['title' => 'New'], $this->person())->status, 'pending is the default');
     }
 
     public function test_a_new_task_defaults_to_its_creator_and_takes_the_assignees_department(): void
@@ -100,9 +106,9 @@ class TaskRulesTest extends TestCase
 
         $task = $this->tasks->create(['project_id' => $project->id, 'title' => 'Build'], $owner);
         $other = $this->tasks->create(['project_id' => $project->id, 'title' => 'Launch'], $owner);
-        $sub = $this->tasks->create(['parent_id' => $task->id, 'title' => 'API'], $owner);
-        $leafA = $this->tasks->create(['parent_id' => $sub->id, 'title' => 'Endpoints'], $owner);
-        $leafB = $this->tasks->create(['parent_id' => $sub->id, 'title' => 'Validation'], $owner);
+        $sub = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $task->id, 'title' => 'API'], $owner);
+        $leafA = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $sub->id, 'title' => 'Endpoints'], $owner);
+        $leafB = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $sub->id, 'title' => 'Validation'], $owner);
 
         $this->assertSame(2, $leafA->depth);
         $this->assertSame($project->id, $leafA->project_id, 'subtasks stay in their parent\'s project');
@@ -127,23 +133,60 @@ class TaskRulesTest extends TestCase
         )));
     }
 
+    public function test_subtasks_need_a_start_and_end_date(): void
+    {
+        $owner = $this->person();
+        $parent = $this->tasks->create(['title' => 'Parent'], $owner);
+
+        foreach ([[], ['start_date' => today()->toDateString()], ['due_date' => today()->toDateString()]] as $dates) {
+            try {
+                $this->tasks->create(['parent_id' => $parent->id, 'title' => 'Child', ...$dates], $owner);
+                $this->fail('a subtask without both dates was created');
+            } catch (ValidationException $e) {
+                $this->assertNotEmpty(array_intersect(['start_date', 'due_date'], array_keys($e->errors())));
+            }
+        }
+
+        try {
+            $this->tasks->create(['parent_id' => $parent->id, 'title' => 'Child', 'start_date' => today()->toDateString(), 'due_date' => today()->subDay()->toDateString()], $owner);
+            $this->fail('a subtask ending before it starts was created');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('due_date', $e->errors());
+        }
+
+        $child = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $parent->id, 'title' => 'Child'], $owner);
+        $this->assertNotNull($child->start_date);
+        $this->assertNotNull($child->due_date);
+
+        $this->expectException(ValidationException::class);
+        $this->tasks->updateDetails($child, ['start_date' => ''], $owner);
+    }
+
+    public function test_top_level_tasks_may_have_no_dates(): void
+    {
+        $task = $this->tasks->create(['title' => 'Someday'], $this->person());
+
+        $this->assertNull($task->start_date);
+        $this->assertNull($task->due_date);
+    }
+
     public function test_subtasks_nest_at_most_three_levels(): void
     {
         $owner = $this->person();
         $a = $this->tasks->create(['title' => 'A'], $owner);
-        $b = $this->tasks->create(['parent_id' => $a->id, 'title' => 'B'], $owner);
-        $c = $this->tasks->create(['parent_id' => $b->id, 'title' => 'C'], $owner);
+        $b = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $a->id, 'title' => 'B'], $owner);
+        $c = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $b->id, 'title' => 'C'], $owner);
 
         $this->assertFalse($c->canHaveChildren());
         $this->expectException(ValidationException::class);
-        $this->tasks->create(['parent_id' => $c->id, 'title' => 'D'], $owner);
+        $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $c->id, 'title' => 'D'], $owner);
     }
 
     public function test_a_parent_follows_its_subtasks_and_ignores_direct_status_changes(): void
     {
         $owner = $this->person();
         $parent = $this->tasks->create(['title' => 'Parent'], $owner);
-        $this->tasks->create(['parent_id' => $parent->id, 'title' => 'Child'], $owner);
+        $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $parent->id, 'title' => 'Child'], $owner);
 
         $this->tasks->applyUpdate($parent->refresh(), $owner, 'completed', 100, 'Trying to close it');
 
@@ -151,31 +194,35 @@ class TaskRulesTest extends TestCase
         $this->assertSame('Trying to close it', $parent->latest_remark, 'the remark still applies');
     }
 
-    public function test_overdue_tasks_are_delayed_and_stay_delayed_until_rescheduled(): void
+    public function test_overdue_tasks_keep_their_status_and_show_as_overdue(): void
     {
         $owner = $this->person();
         $task = $this->tasks->create(['title' => 'Late', 'due_date' => today()->subDay()->toDateString()], $owner);
 
-        $this->assertSame(TaskStatus::Delayed, $task->status);
-        $this->assertSame(TaskUpdateType::AutoDelayed, $task->updates()->first()->type);
+        $this->assertSame(TaskStatus::Pending, $task->status);
+        $this->assertTrue($task->isOverdue());
+        $this->assertSame('1 day overdue', $task->dueLabel());
+        $this->assertSame([$task->id], Task::query()->overdue()->pluck('id')->all());
 
-        // Choosing In Progress on an overdue task keeps it Delayed.
-        $update = $this->tasks->applyUpdate($task, $owner, 'in_progress', 30);
-        $this->assertSame(TaskStatus::Delayed, $task->refresh()->status);
-        $this->assertSame(30, $task->progress);
-        $this->assertSame('in_progress', $update->meta['requested_status']);
-
-        $this->tasks->updateDetails($task, ['due_date' => today()->addWeek()->toDateString()], $owner);
+        $this->tasks->applyUpdate($task, $owner, 'in_progress', 30);
         $this->assertSame(TaskStatus::InProgress, $task->refresh()->status);
-        $this->assertNull($task->delayed_at);
+
+        $this->tasks->applyUpdate($task, $owner, 'completed', 100);
+        $this->assertSame([], Task::query()->overdue()->pluck('id')->all(), 'completed work is never overdue');
     }
 
-    public function test_auto_delay_can_be_switched_off(): void
+    public function test_old_history_with_removed_statuses_still_reads(): void
     {
-        Settings::set(['deadline.auto_delay_enabled' => false]);
-        $task = $this->tasks->create(['title' => 'Late', 'due_date' => today()->subDay()->toDateString()], $this->person());
+        $task = $this->tasks->create(['title' => 'Old'], $this->person());
+        DB::table('task_updates')->insert([
+            'task_id' => $task->id, 'type' => 'auto_delayed', 'old_status' => 'pending', 'new_status' => 'delayed',
+            'old_progress' => 0, 'new_progress' => 0, 'created_at' => now(), 'updated_at' => now(),
+        ]);
 
-        $this->assertSame(TaskStatus::Pending, $task->status);
+        $entry = $task->updates()->where('type', 'auto_delayed')->sole();
+        $this->assertSame(TaskStatus::Pending, $entry->old_status);
+        $this->assertSame(LegacyTaskStatus::Delayed, $entry->new_status);
+        $this->assertSame('Delayed', $entry->new_status->label());
     }
 
     public function test_history_is_append_only(): void
@@ -245,9 +292,9 @@ class TaskRulesTest extends TestCase
         $owner = $this->person();
         $project = $this->project(['owner' => $owner]);
         $parent = $this->tasks->create(['project_id' => $project->id, 'title' => 'Parent'], $owner);
-        $keep = $this->tasks->create(['parent_id' => $parent->id, 'title' => 'Keep'], $owner);
-        $drop = $this->tasks->create(['parent_id' => $parent->id, 'title' => 'Drop'], $owner);
-        $grandchild = $this->tasks->create(['parent_id' => $drop->id, 'title' => 'Grandchild'], $owner);
+        $keep = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $parent->id, 'title' => 'Keep'], $owner);
+        $drop = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $parent->id, 'title' => 'Drop'], $owner);
+        $grandchild = $this->tasks->create([...$this->subtaskDates(), 'parent_id' => $drop->id, 'title' => 'Grandchild'], $owner);
         $this->tasks->applyUpdate($keep, $owner, 'completed');
         $this->assertSame(50, $parent->refresh()->progress);
 
@@ -276,7 +323,7 @@ class TaskRulesTest extends TestCase
     public function test_deleting_a_project_soft_deletes_its_tasks(): void
     {
         $owner = $this->person();
-        $project = $this->project(['owner' => $owner, 'tasks' => [['title' => 'One', 'subtasks' => ['Sub']]]]);
+        $project = $this->project(['owner' => $owner, 'tasks' => [['title' => 'One', ...$this->subtaskDates(), 'subtasks' => ['Sub']]]]);
 
         app(ProjectService::class)->delete($project, $owner);
 
@@ -294,7 +341,7 @@ class TaskRulesTest extends TestCase
         $project = $this->project([
             'owner' => $owner,
             'members' => [['user_id' => $member->id, 'role' => 'manager'], ['user_id' => $executive->id]],
-            'tasks' => [['title' => 'Design', 'subtasks' => ['Wireframes', 'Mockups']], ['title' => '  ']],
+            'tasks' => [['title' => 'Design', ...$this->subtaskDates(), 'subtasks' => ['Wireframes', 'Mockups']], ['title' => '  ']],
         ]);
 
         $this->assertTrue($project->isProjectManager($member));

@@ -18,12 +18,12 @@ Every task change goes through one service class, which keeps these consistent:
 | Projects → tasks, standalone tasks | both | |
 | Subtasks with roll-up and numbering (1, 1.2, 1.2.3) | TaskFlow (depth), to-do-system (rules) | Up to 3 levels (`config/organizer.php`) |
 | Six statuses, progress ⇄ status sync | to-do-system | |
-| Auto-delay, deadline reminders | to-do-system | Scheduler, plus a throttled in-request fallback |
+| Deadline reminders | to-do-system | Scheduler, plus a throttled in-request fallback |
 | Project health (9 rules, configurable thresholds) | to-do-system | `ProjectHealthService` |
 | Post-launch work on completed projects | to-do-system | `tasks.category` |
 | Project suggestions | to-do-system | |
 | Append-only history | to-do-system | DB triggers + model guard |
-| Remarks with supervisor review | TaskFlow | `remarks.reviewed_by/at` |
+| Daily report: updates by project, reported in the daily meeting | TaskFlow (Latest Updates, "Mark as reported") | `App\Support\DailyReport`; reported = `remarks.reviewed_by/at` |
 | Proof of work | TaskFlow | Files attached to a remark |
 | Comments, @mentions, attachments | to-do-system | |
 | Notification centre + bell | to-do-system | Plus email opt-in (new) |
@@ -49,7 +49,7 @@ All of these are enforced in `app/Services/`.
 
 - A task belongs to a project or stands alone.
 - Subtasks nest up to three levels and always live in their parent's project.
-- A parent's progress is the average of its non-cancelled children, and its status follows them (0% Pending, 1–99% In Progress, 100% Completed, Delayed when overdue). The parent can still take remarks.
+- A task is Pending (the default), In Progress or Completed. A parent's progress is the average of its children, and its status follows them (0% Pending, 1–99% In Progress, 100% Completed). The parent can still take remarks.
 - Changes roll up level by level to the project.
 
 ### Status and progress
@@ -57,11 +57,10 @@ All of these are enforced in `app/Services/`.
 - 0% is Pending, 1–99% In Progress, 100% Completed.
 - When a request names a status, that status wins and progress is adjusted to match.
 
-### Auto-delay
+### Overdue work
 
-- Pending and In Progress tasks past their due date become Delayed. The previous status is saved, and a system history entry and a notification are written.
-- Choosing Pending or In Progress on an overdue task keeps it Delayed.
-- Moving the due date forward clears an automatic delay.
+- Pending and In Progress tasks past their due date keep their status and are shown as overdue ("2 days overdue").
+- Earlier versions also had Delayed, On Hold and Cancelled. Existing tasks were moved to the status their progress gives them; history entries keep the old statuses.
 
 ### Assignment
 
@@ -87,10 +86,10 @@ Health is cached on the project and evaluated in this order:
 
 1. Project status Completed → **Completed**
 2. Project status On Hold or Cancelled → **On Hold**
-3. Every non-cancelled task completed → **Completed**
+3. Every task completed → **Completed**
 4. Project past its due date → **Delayed**
-5. Delayed share of open tasks ≥ the delayed threshold → **Delayed**
-6. Delayed share ≥ the at-risk threshold → **At Risk**
+5. Overdue share of open tasks ≥ the delayed threshold → **Delayed**
+6. Overdue share ≥ the at-risk threshold → **At Risk**
 7. Behind the time-based expected progress → **At Risk**
 8. Due soon with low progress → **At Risk**
 9. Otherwise → **On Track**
@@ -114,7 +113,7 @@ Health is cached on the project and evaluated in this order:
 | Enums (status, priority, roles, notification types…) | `app/Enums/` |
 | Models and visibility scopes (`visibleTo`, `involving`) | `app/Models/` |
 | Authorization | `app/Policies/` (+ `Gate::before` for admins in `AppServiceProvider`) |
-| Task rules, roll-up, delays | `app/Services/TaskService.php` |
+| Task rules, roll-up | `app/Services/TaskService.php` |
 | Projects, team, suggestions | `app/Services/ProjectService.php` |
 | Health | `app/Services/ProjectHealthService.php` |
 | Comments, reviews, focus, working sessions | `app/Services/CollaborationService.php` |
@@ -170,7 +169,7 @@ System:
 
 | Suite | Covers |
 |---|---|
-| `TaskRulesTest` | Status rules, roll-up, delays, history, deletion |
+| `TaskRulesTest` | Status rules, roll-up, overdue work, history, deletion |
 | `AccessTest` | Every role, plus department walls |
 | `AuthTest` | Sign-in, lockout, throttling, session revocation |
 | `HealthTest` | All health rules |

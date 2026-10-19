@@ -71,7 +71,7 @@
                                         <button type="button" class="btn btn-ghost btn-sm text-rose-600" wire:click="deactivate({{ $u->id }})" wire:confirm="Deactivate {{ $u->name }}? They are signed out everywhere and can't sign in until reactivated.">Deactivate</button>
                                     @endif
                                 @else
-                                    <button type="button" class="btn btn-ghost btn-sm" wire:click="activate({{ $u->id }})">Reactivate</button>
+                                    <button type="button" class="btn btn-ghost btn-sm text-emerald-600" wire:click="activate({{ $u->id }})">Reactivate</button>
                                 @endif
                             </div>
                         </td>

@@ -79,6 +79,8 @@ class TaskForm extends Component
             $this->authorize('addSubtask', $parent);
             $this->parentId = $parent->id;
             $this->projectId = (string) ($parent->project_id ?? '');
+            // Subtasks need both dates; start from the parent's.
+            $this->startDate = ($parent->start_date ?? today())->toDateString();
             $this->dueDate = $parent->due_date?->toDateString() ?? '';
         } elseif ($projectId = request()->integer('project')) {
             $project = Project::findOrFail($projectId);
@@ -144,13 +146,14 @@ class TaskForm extends Component
             'category' => ['nullable', Rule::enum(TaskCategory::class)],
             'priority' => ['required', Rule::enum(Priority::class)],
             'assigneeId' => ['nullable', 'integer', 'exists:users,id'],
-            'startDate' => ['nullable', 'date'],
-            'dueDate' => ['nullable', 'date', ...($this->startDate !== '' ? ['after_or_equal:startDate'] : [])],
+            // Every subtask has a start and an end date.
+            'startDate' => [$this->parentId ? 'required' : 'nullable', 'date'],
+            'dueDate' => [$this->parentId ? 'required' : 'nullable', 'date', ...($this->startDate !== '' ? ['after_or_equal:startDate'] : [])],
             'status' => ['required', Rule::enum(TaskStatus::class)],
             'progress' => ['integer', 'between:0,100'],
             'collaboratorIds' => ['array'],
             'collaboratorIds.*' => ['integer', 'exists:users,id'],
-        ], [], ['dueDate' => 'due date', 'startDate' => 'start date', 'assigneeId' => 'assignee']);
+        ], [], ['dueDate' => $this->parentId ? 'end date' : 'due date', 'startDate' => 'start date', 'assigneeId' => 'assignee']);
 
         $values = [
             'title' => $data['title'],

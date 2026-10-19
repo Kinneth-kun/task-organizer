@@ -19,21 +19,17 @@ class AutomationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_the_deadline_check_delays_overdue_tasks_and_reminds_once(): void
+    public function test_the_deadline_check_reminds_once_and_leaves_overdue_tasks_alone(): void
     {
         $owner = $this->person();
         $tasks = app(TaskService::class);
-        Settings::set(['deadline.auto_delay_enabled' => false]);
         $late = $tasks->create(['title' => 'Late', 'due_date' => today()->subDays(2)->toDateString()], $owner);
-        Settings::set(['deadline.auto_delay_enabled' => true]);
         $soon = $tasks->create(['title' => 'Soon', 'due_date' => today()->addDay()->toDateString()], $owner);
-        $this->assertSame(TaskStatus::Pending, $late->status);
 
         $first = app(DeadlineService::class)->run();
         $second = app(DeadlineService::class)->run();
 
-        $this->assertSame(1, $first['delayed']);
-        $this->assertSame(TaskStatus::Delayed, $late->refresh()->status);
+        $this->assertSame(TaskStatus::Pending, $late->refresh()->status, 'overdue tasks keep their status');
         $this->assertSame(1, $first['reminders']);
         $this->assertSame(0, $second['reminders'], 'one reminder per due date');
         $this->assertDatabaseHas('notifications', ['type' => 'deadline_approaching', 'notifiable_id' => $owner->id]);

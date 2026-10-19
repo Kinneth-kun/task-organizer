@@ -23,13 +23,13 @@
             <tbody>
                 @forelse ($notifications as $n)
                     @php($type = \App\Enums\NotificationType::tryFrom($n->type))
-                    <tr wire:key="n-{{ $n->id }}" class="{{ $n->read_at ? '' : 'bg-slate-50 dark:bg-slate-800/40' }}">
+                    <tr wire:key="n-{{ $n->id }}" class="{{ $n->read_at ? '' : 'bg-indigo-50/40 dark:bg-indigo-500/5' }}">
                         <td class="text-xs whitespace-nowrap text-slate-500" title="{{ $n->created_at->format('M j, Y g:i:s A') }}">
                             {{ $n->created_at->format('M j, g:i A') }}
                             <span class="block text-[11px] text-slate-400">{{ $n->created_at->diffForHumans() }}</span>
                         </td>
                         <td class="whitespace-nowrap">
-                            <span class="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300"><x-icon :name="$type?->icon() ?? 'bell'" class="h-4 w-4 text-slate-400" /> {{ $type?->label() ?? 'Notification' }}</span>
+                            <span class="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><span class="rounded-lg p-1.5 {{ \App\Support\Palette::soft($type?->color()) }}"><x-icon :name="$type?->icon() ?? 'bell'" class="h-4 w-4" /></span> {{ $type?->label() ?? 'Notification' }}</span>
                         </td>
                         <td class="min-w-56 text-sm">
                             <a href="{{ route('notifications.open', $n->id) }}" class="text-slate-800 hover:text-indigo-600 dark:text-slate-100 dark:hover:text-indigo-400 {{ $n->read_at ? '' : 'font-semibold' }}">{{ $n->data['title'] ?? 'Notification' }}</a>
@@ -53,7 +53,7 @@
                             @if ($n->read_at)
                                 <x-badge>Read</x-badge>
                             @else
-                                <x-badge :dot="true">Unread</x-badge>
+                                <x-badge color="indigo" :dot="true">Unread</x-badge>
                             @endif
                         </td>
                         <td class="text-right">

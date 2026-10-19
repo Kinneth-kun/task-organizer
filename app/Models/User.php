@@ -137,7 +137,7 @@ class User extends Authenticatable
         return $this->is_active && ! $this->hasFullAccess();
     }
 
-    /** Supervisors review remarks and see the department dashboard filter. */
+    /** Supervisors mark updates as reported and see the department dashboard filter. */
     public function isSupervisor(): bool
     {
         return $this->hasFullAccess() || $this->isManager();

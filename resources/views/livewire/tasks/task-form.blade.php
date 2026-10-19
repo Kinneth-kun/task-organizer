@@ -100,14 +100,15 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="label" for="start">Start</label>
+                        <label class="label" for="start">Start @if ($parentId)<span class="text-rose-500">*</span>@endif</label>
                         <input id="start" type="date" class="input" wire:model="startDate">
                     </div>
                     <div>
-                        <label class="label" for="due">Due</label>
+                        <label class="label" for="due">{{ $parentId ? 'End' : 'Due' }} @if ($parentId)<span class="text-rose-500">*</span>@endif</label>
                         <input id="due" type="date" class="input" wire:model="dueDate">
                     </div>
                 </div>
+                @error('startDate') <p class="error -mt-3">{{ $message }}</p> @enderror
                 @error('dueDate') <p class="error -mt-3">{{ $message }}</p> @enderror
                 <div class="-mt-2 flex flex-wrap gap-1.5">
                     @foreach (['Today' => 0, 'Tomorrow' => 1, '3 days' => 3, '1 week' => 7] as $label => $days)
@@ -121,7 +122,6 @@
                         <select id="status" class="input" x-model="status"
                                 @change="if (status === 'pending') progress = 0; if (status === 'completed') progress = 100; if (status === 'in_progress' && (progress < 1 || progress > 99)) progress = 10">
                             @foreach (\App\Enums\TaskStatus::options() as $value => $label)
-                                @continue($value === 'delayed')
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </select>

@@ -64,13 +64,20 @@ class ProjectService
                 $task = $this->tasks->create([
                     'project_id' => $project->id,
                     'title' => $item['title'],
+                    'start_date' => $item['start_date'] ?? null,
                     'due_date' => $item['due_date'] ?? null,
                     'assignee_id' => $item['assignee_id'] ?? null,
                 ], $actor);
 
                 foreach ($item['subtasks'] ?? [] as $subtitle) {
                     if (trim((string) $subtitle) !== '') {
-                        $this->tasks->create(['parent_id' => $task->id, 'title' => $subtitle], $actor);
+                        // Subtasks take their task's start and end dates.
+                        $this->tasks->create([
+                            'parent_id' => $task->id,
+                            'title' => $subtitle,
+                            'start_date' => $item['start_date'] ?? null,
+                            'due_date' => $item['due_date'] ?? null,
+                        ], $actor);
                     }
                 }
             }

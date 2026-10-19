@@ -67,7 +67,7 @@ class Executive extends Component
         $grouped = fn (Builder $query) => $query->whereNotNull('department_id')->selectRaw('department_id, count(*) as c')->groupBy('department_id')->pluck('c', 'department_id');
 
         $open = $grouped(Task::query()->open());
-        $delayed = $grouped(Task::query()->where('status', TaskStatus::Delayed->value));
+        $overdue = $grouped(Task::query()->overdue());
         $progress = $grouped(Task::query()->where('status', TaskStatus::InProgress->value));
         $done = $grouped(Task::query()->where('status', TaskStatus::Completed->value)->where('completed_at', '>=', now()->subDays(30)));
         $unreviewed = Remark::query()->unreviewed()->join('tasks', 'tasks.id', '=', 'remarks.task_id')
@@ -80,7 +80,7 @@ class Executive extends Component
                 'people' => $d->users_count,
                 'open' => (int) ($open[$d->id] ?? 0),
                 'in_progress' => (int) ($progress[$d->id] ?? 0),
-                'delayed' => (int) ($delayed[$d->id] ?? 0),
+                'overdue' => (int) ($overdue[$d->id] ?? 0),
                 'done30' => (int) ($done[$d->id] ?? 0),
                 'unreviewed' => (int) ($unreviewed[$d->id] ?? 0),
             ]);
@@ -104,7 +104,7 @@ class Executive extends Component
         }
 
         return $this->tasks()->open()->with(['project', 'assignee', 'parent'])
-            ->orderByRaw("case status when 'delayed' then 0 when 'in_progress' then 1 else 2 end")
+            ->orderByRaw("case when due_date < ? then 0 when status = 'in_progress' then 1 else 2 end", [today()->toDateString()])
             ->orderByRaw('due_date is null')->orderBy('due_date')
             ->limit(30)->get();
     }

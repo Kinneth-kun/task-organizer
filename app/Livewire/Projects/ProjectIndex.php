@@ -22,9 +22,24 @@ class ProjectIndex extends Component
 {
     use Toasts, WithFileUploads;
 
-    /** open | active | on_hold | completed | cancelled | all */
+    /** The status filter's choices. */
+    public const STATUS_FILTERS = [
+        'all' => 'All projects',
+        'active' => 'Active',
+        'completed' => 'Completed',
+    ];
+
+    /** One of STATUS_FILTERS' keys. */
     #[Url]
-    public string $status = 'open';
+    public string $status = 'all';
+
+    public function mount(): void
+    {
+        // Old links may still carry a status that is no longer offered.
+        if (! array_key_exists($this->status, self::STATUS_FILTERS)) {
+            $this->status = 'all';
+        }
+    }
 
     #[Url]
     public string $health = '';
@@ -92,8 +107,7 @@ class ProjectIndex extends Component
                 'tasks as open_tasks_count' => fn ($q) => $q->open(),
                 'tasks as total_tasks_count',
             ])
-            ->when($this->status === 'open', fn ($q) => $q->open())
-            ->when(ProjectStatus::tryFrom($this->status), fn ($q, $status) => $q->where('status', $status->value))
+            ->when(array_key_exists($this->status, self::STATUS_FILTERS) ? ProjectStatus::tryFrom($this->status) : null, fn ($q, $status) => $q->where('status', $status->value))
             ->when($this->health, fn ($q) => $q->where('health', $this->health))
             ->when($this->department, fn ($q) => $q->where('department_id', $this->department))
             ->when($this->mine, fn ($q) => $q->where(fn ($w) => $w->where('owner_id', $user->id)

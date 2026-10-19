@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
- * A progress note on a task. Supervisors mark it reviewed; proof-of-work files attach to it.
+ * A progress note on a task: an "update" in the daily report. Supervisors mark it reported once
+ * it has been covered in the daily meeting (stored as reviewed_by/reviewed_at); proof-of-work
+ * files attach to it.
  */
 class Remark extends Model
 {

@@ -9,9 +9,6 @@ enum TaskStatus: string
     case Pending = 'pending';
     case InProgress = 'in_progress';
     case Completed = 'completed';
-    case Delayed = 'delayed';
-    case OnHold = 'on_hold';
-    case Cancelled = 'cancelled';
 
     public function label(): string
     {
@@ -19,9 +16,6 @@ enum TaskStatus: string
             self::Pending => 'Pending',
             self::InProgress => 'In Progress',
             self::Completed => 'Completed',
-            self::Delayed => 'Delayed',
-            self::OnHold => 'On Hold',
-            self::Cancelled => 'Cancelled',
         };
     }
 
@@ -31,28 +25,19 @@ enum TaskStatus: string
             self::Pending => 'slate',
             self::InProgress => 'blue',
             self::Completed => 'emerald',
-            self::Delayed => 'red',
-            self::OnHold => 'amber',
-            self::Cancelled => 'zinc',
         };
     }
 
-    /** Open work: can still become delayed or due soon. */
+    /** Open work: can still become overdue or due soon. */
     public function isOpen(): bool
     {
         return in_array($this, self::open(), true);
     }
 
-    /** Statuses the automatic delay check applies to. */
-    public function canAutoDelay(): bool
-    {
-        return $this === self::Pending || $this === self::InProgress;
-    }
-
     /** @return list<self> */
     public static function open(): array
     {
-        return [self::Pending, self::InProgress, self::Delayed];
+        return [self::Pending, self::InProgress];
     }
 
     /** @return list<string> */

@@ -26,7 +26,7 @@
         <x-stat label="Overdue" :value="$s['overdue']" icon="alert" color="red" />
         <x-stat label="Completed (30 days)" :value="$s['completed30']" icon="check-circle" color="emerald" />
         <x-stat label="Working right now" :value="$s['working']" icon="bolt" color="amber" />
-        <x-stat label="Remarks to review" :value="$s['unreviewed']" icon="eye" color="violet" />
+        <x-stat label="Updates to report" :value="$s['unreviewed']" icon="clipboard" color="violet" :href="route('reports.daily', ['state' => 'pending'])" />
     </div>
 
     <div class="mt-6 grid gap-6 lg:grid-cols-2">
@@ -52,7 +52,7 @@
                 <div class="flex h-4 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                     @foreach (\App\Enums\TaskStatus::cases() as $st)
                         @if ($dist[$st->value])
-                            <div class="border-r border-white last:border-r-0 dark:border-slate-900 {{ \App\Support\Palette::dot($st->color()) }}" style="width: {{ $dist[$st->value] / $total * 100 }}%" title="{{ $st->label() }}: {{ $dist[$st->value] }}"></div>
+                            <div class="{{ \App\Support\Palette::dot($st->color()) }}" style="width: {{ $dist[$st->value] / $total * 100 }}%" title="{{ $st->label() }}: {{ $dist[$st->value] }}"></div>
                         @endif
                     @endforeach
                 </div>
@@ -72,7 +72,7 @@
     <section class="card mt-6 overflow-x-auto">
         <div class="card-header"><h2 class="card-title">Work by department</h2><span class="text-xs text-slate-400">Click a department to drill down</span></div>
         <table class="table">
-            <thead><tr><th>Department</th><th>People</th><th>Open</th><th>In progress</th><th>Delayed</th><th>Done (30d)</th><th>To review</th></tr></thead>
+            <thead><tr><th>Department</th><th>People</th><th>Open</th><th>In progress</th><th>Overdue</th><th>Done (30d)</th><th>To report</th></tr></thead>
             <tbody>
                 @foreach ($this->byDepartment as $row)
                     <tr class="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 {{ (string) $row['department']->id === $department ? 'bg-indigo-50/60 dark:bg-indigo-500/10' : '' }}"
@@ -81,8 +81,8 @@
                         <td class="tabular-nums">{{ $row['people'] }}</td>
                         <td class="tabular-nums">{{ $row['open'] }}</td>
                         <td class="tabular-nums">{{ $row['in_progress'] }}</td>
-                        <td class="tabular-nums {{ $row['delayed'] ? 'font-semibold' : '' }}">{{ $row['delayed'] }}</td>
-                        <td class="tabular-nums">{{ $row['done30'] }}</td>
+                        <td class="tabular-nums {{ $row['overdue'] ? 'font-semibold text-rose-600' : '' }}">{{ $row['overdue'] }}</td>
+                        <td class="tabular-nums text-emerald-600">{{ $row['done30'] }}</td>
                         <td class="tabular-nums">{{ $row['unreviewed'] }}</td>
                     </tr>
                 @endforeach
@@ -118,7 +118,7 @@
                         <td class="text-sm">{{ $project->department?->name ?? '—' }}</td>
                         <td><x-progress :value="$project->progress" :label="true" /></td>
                         <td><x-status :value="$project->health" /></td>
-                        <td class="text-sm {{ $project->isOverdue() ? 'font-semibold' : '' }}">{{ $project->due_date?->format('M j, Y') ?? '—' }}</td>
+                        <td class="text-sm {{ $project->isOverdue() ? 'font-medium text-rose-600' : '' }}">{{ $project->due_date?->format('M j, Y') ?? '—' }}</td>
                         <td class="tabular-nums">{{ $project->open_tasks_count }}</td>
                     </tr>
                 @empty

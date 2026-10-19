@@ -44,8 +44,8 @@ return [
     | Inline deadline checks
     |--------------------------------------------------------------------------
     |
-    | Marks overdue tasks Delayed after a signed-in request, at most every 5 minutes, so the app
-    | stays current on hosts where the scheduler cron is not configured.
+    | Sends deadline reminders and refreshes project health after a signed-in request, at most every
+    | 5 minutes, so the app stays current on hosts where the scheduler cron is not configured.
     |
     */
 

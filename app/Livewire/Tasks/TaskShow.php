@@ -53,6 +53,8 @@ class TaskShow extends Component
 
     public string $subAssignee = '';
 
+    public string $subStart = '';
+
     public string $subDue = '';
 
     /* Collaborators */
@@ -114,7 +116,9 @@ class TaskShow extends Component
     {
         $this->addingSubtask = true;
         $this->subTitle = '';
-        $this->subDue = '';
+        // Subtasks need both dates; start from this task's.
+        $this->subStart = ($this->task->start_date ?? today())->toDateString();
+        $this->subDue = $this->task->due_date?->toDateString() ?? '';
         $this->subAssignee = auth()->user()->isAssignable() ? (string) auth()->id() : '';
     }
 
@@ -124,18 +128,20 @@ class TaskShow extends Component
         $this->validate([
             'subTitle' => ['required', 'string', 'max:255'],
             'subAssignee' => ['nullable', 'integer', 'exists:users,id'],
-            'subDue' => ['nullable', 'date'],
-        ], [], ['subTitle' => 'title', 'subAssignee' => 'assignee', 'subDue' => 'due date']);
+            'subStart' => ['required', 'date'],
+            'subDue' => ['required', 'date', 'after_or_equal:subStart'],
+        ], [], ['subTitle' => 'title', 'subAssignee' => 'assignee', 'subStart' => 'start date', 'subDue' => 'end date']);
 
         $tasks->create([
             'parent_id' => $this->task->id,
             'title' => $this->subTitle,
             'assignee_id' => $this->subAssignee ?: null,
-            'due_date' => $this->subDue ?: null,
+            'start_date' => $this->subStart,
+            'due_date' => $this->subDue,
         ], auth()->user());
 
+        // Keep the dates for the next subtask.
         $this->subTitle = '';
-        $this->subDue = '';
         $this->refreshTask();
         $this->resetQuickUpdate();
         $this->toast('Subtask added.');
@@ -199,7 +205,7 @@ class TaskShow extends Component
         $this->authorize('review', $remark);
         $collaboration->review($remark, auth()->user());
         unset($this->remarks);
-        $this->toast('Remark marked as reviewed.');
+        $this->toast('Update marked as reported.');
     }
 
     /* ================================================================== Collaborators */

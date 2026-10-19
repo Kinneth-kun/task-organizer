@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('tasks:check-deadlines', function (DeadlineService $deadlines) {
     $result = $deadlines->run();
-    $this->info("Marked {$result['delayed']} task(s) delayed, sent {$result['reminders']} reminder(s), refreshed {$result['projects']} project(s), expired {$result['sessions']} working session(s).");
-})->purpose('Mark overdue tasks Delayed, send deadline reminders and refresh project health');
+    $this->info("Sent {$result['reminders']} reminder(s), refreshed {$result['projects']} project(s), expired {$result['sessions']} working session(s).");
+})->purpose('Send deadline reminders and refresh project health');
 
 Artisan::command('digest:send {--dry-run : Show what would be sent without sending} {--force : Send even if disabled, quiet or already sent today} {--user= : One person (username, email or id)}', function (DigestService $digest) {
     $results = $digest->send([

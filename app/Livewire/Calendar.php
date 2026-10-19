@@ -73,7 +73,7 @@ class Calendar extends Component
             ->with(['project', 'assignee'])
             ->whereNotNull('due_date')
             ->whereBetween('due_date', [$gridStart->toDateString(), $gridEnd->toDateString()])
-            ->when(! $this->done, fn ($q) => $q->whereNotIn('status', ['completed', 'cancelled']))
+            ->when(! $this->done, fn ($q) => $q->where('status', '!=', 'completed'))
             ->when($this->mine, fn ($q) => $q->involving($user))
             ->when($this->project === 'standalone', fn ($q) => $q->whereNull('project_id'))
             ->when(ctype_digit($this->project), fn ($q) => $q->where('project_id', (int) $this->project))

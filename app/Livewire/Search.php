@@ -34,7 +34,7 @@ class Search extends Component
 
             $results['tasks'] = Task::query()->visibleTo($user)->with(['project', 'assignee', 'parent'])
                 ->where(fn ($q) => $q->where('title', 'like', $like)->orWhere('description', 'like', $like)->orWhere('latest_remark', 'like', $like))
-                ->orderByRaw('case when status in (?, ?, ?) then 0 else 1 end', ['pending', 'in_progress', 'delayed'])
+                ->orderByRaw('case when status in (?, ?) then 0 else 1 end', ['pending', 'in_progress'])
                 ->latest('updated_at')->limit(25)->get();
 
             $results['comments'] = TaskComment::query()->with(['user', 'task.project'])

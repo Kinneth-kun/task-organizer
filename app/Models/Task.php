@@ -29,9 +29,9 @@ class Task extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'project_id', 'parent_id', 'depth', 'title', 'description', 'category', 'status', 'status_before_delay',
+        'project_id', 'parent_id', 'depth', 'title', 'description', 'category', 'status',
         'priority', 'progress', 'assignee_id', 'created_by', 'department_id', 'start_date', 'due_date',
-        'completed_at', 'delayed_at', 'deadline_reminded_for', 'latest_remark', 'latest_update_at',
+        'completed_at', 'deadline_reminded_for', 'latest_remark', 'latest_update_at',
         'latest_update_by', 'position',
     ];
 
@@ -39,7 +39,6 @@ class Task extends Model
     {
         return [
             'status' => TaskStatus::class,
-            'status_before_delay' => TaskStatus::class,
             'priority' => Priority::class,
             'category' => TaskCategory::class,
             'progress' => 'integer',
@@ -48,7 +47,6 @@ class Task extends Model
             'due_date' => 'date',
             'deadline_reminded_for' => 'date',
             'completed_at' => 'datetime',
-            'delayed_at' => 'datetime',
             'latest_update_at' => 'datetime',
         ];
     }
@@ -257,6 +255,12 @@ class Task extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereIn('tasks.status', TaskStatus::openValues());
+    }
+
+    /** Open tasks past their due date. */
+    public function scopeOverdue(Builder $query): Builder
+    {
+        return $query->open()->whereNotNull('tasks.due_date')->whereDate('tasks.due_date', '<', today());
     }
 
     /** Build tasks (not post-launch items). */

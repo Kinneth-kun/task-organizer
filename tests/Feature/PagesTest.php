@@ -65,7 +65,7 @@ class PagesTest extends TestCase
         $collaboration->review(Remark::query()->where('task_id', $done->id)->firstOrFail(), $lead);
 
         $build = $tasks->create(['project_id' => $portal->id, 'title' => 'Build leave module', 'assignee_id' => $dev->id, 'due_date' => today()->addDays(10)->toDateString()], $lead);
-        $api = $tasks->create(['parent_id' => $build->id, 'title' => 'Leave request API', 'assignee_id' => $intern->id], $lead);
+        $api = $tasks->create([...$this->subtaskDates(), 'parent_id' => $build->id, 'title' => 'Leave request API', 'assignee_id' => $intern->id], $lead);
         $tasks->applyUpdate($api, $intern, null, 60, 'Halfway there. @miguel.tan please review.');
         $tasks->create(['project_id' => $portal->id, 'title' => 'Payslip viewer', 'assignee_id' => $dev->id, 'due_date' => today()->subDays(2)->toDateString()], $lead);
 
@@ -105,7 +105,7 @@ class PagesTest extends TestCase
         $user = User::where('username', $username)->firstOrFail();
         $this->actingAs($user);
 
-        foreach (['dashboard', 'tasks.index', 'projects.index', 'calendar', 'search', 'notifications.index', 'profile'] as $route) {
+        foreach (['dashboard', 'tasks.index', 'projects.index', 'calendar', 'reports.daily', 'search', 'notifications.index', 'profile'] as $route) {
             $this->get(route($route))->assertOk();
         }
 
@@ -115,6 +115,8 @@ class PagesTest extends TestCase
         $this->get(route('tasks.create'))->assertOk();
         $this->get(route('export.tasks'))->assertOk();
         $this->get(route('export.projects'))->assertOk();
+        $this->get(route('export.daily'))->assertOk();
+        $this->get(route('reports.daily', ['date' => today()->subDay()->toDateString(), 'state' => 'pending']))->assertOk();
     }
 
     #[DataProvider('people')]

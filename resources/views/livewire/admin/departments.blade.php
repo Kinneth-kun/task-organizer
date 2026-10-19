@@ -59,6 +59,15 @@
                     <label class="label" for="d-desc">Description</label>
                     <input id="d-desc" class="input" wire:model="description">
                 </div>
+                <div>
+                    <span class="label">Colour</span>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (\App\Support\Palette::CHOICES as $choice)
+                            <button type="button" wire:click="$set('color', '{{ $choice }}')" aria-label="{{ $choice }}"
+                                    class="h-7 w-7 rounded-full {{ \App\Support\Palette::dot($choice) }} {{ $color === $choice ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-900' : '' }}"></button>
+                        @endforeach
+                    </div>
+                </div>
             </form>
             <x-slot:footer>
                 <button type="button" class="btn btn-secondary" wire:click="$set('editing', false)">Cancel</button>

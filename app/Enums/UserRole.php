@@ -44,7 +44,7 @@ enum UserRole: string
         return match ($this) {
             self::Admin => 'Full control: users, departments, settings, meeting mode and every project and task.',
             self::Executive => 'Oversight of every project and task, the executive dashboard and the audit trail.',
-            self::Manager => 'Manages every project and task in their own department and reviews remarks.',
+            self::Manager => 'Manages every project and task in their own department and reports its updates in the daily meeting.',
             self::Member => 'Works on projects they belong to and tasks they are assigned to.',
             self::Intern => 'Works only on tasks assigned to them; cannot create projects or assign others.',
         };

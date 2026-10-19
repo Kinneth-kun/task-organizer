@@ -1,5 +1,5 @@
 <div class="flex min-h-screen flex-col bg-slate-950 text-slate-100"
-     x-data="{ slide: 0, count: 4, go(n) { this.slide = (n + this.count) % this.count } }"
+     x-data="{ slide: 0, count: 5, go(n) { this.slide = (n + this.count) % this.count } }"
      @keydown.window.arrow-right="go(slide + 1)" @keydown.window.arrow-left="go(slide - 1)" wire:poll.60s>
     <header class="flex items-center gap-4 border-b border-white/10 px-8 py-4">
         <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600"><x-icon name="presentation" class="h-5 w-5" /></span>
@@ -8,7 +8,7 @@
             <p class="text-xs text-slate-400">{{ now()->format('l, F j, Y · g:i A') }} · refreshes every minute</p>
         </div>
         <nav class="ml-auto flex items-center gap-1 rounded-xl bg-white/5 p-1">
-            @foreach (['Overview', 'Needs attention', 'Coming up', 'Recent wins'] as $i => $label)
+            @foreach (['Overview', 'Latest updates', 'Needs attention', 'Coming up', 'Recent wins'] as $i => $label)
                 <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-medium transition" :class="slide === {{ $i }} ? 'bg-white text-slate-900' : 'text-slate-300 hover:bg-white/10'" @click="go({{ $i }})">{{ $label }}</button>
             @endforeach
         </nav>
@@ -38,8 +38,51 @@
             </div>
         </section>
 
+        {{-- Latest updates (the daily report) --}}
+        <section x-show="slide === 1" x-cloak>
+            <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+                <h2 class="text-3xl font-semibold tracking-tight">Latest updates <span class="text-slate-500">· since {{ $updatesSince->isYesterday() ? 'yesterday' : $updatesSince->format('l') }}</span></h2>
+                <p class="text-sm text-slate-400">
+                    @if ($updatesPending)
+                        <span class="font-semibold text-amber-300">{{ $updatesPending }} not reported yet</span> · mark them in the <a href="{{ route('reports.daily', ['state' => 'pending']) }}" class="underline hover:text-white">daily report</a>
+                    @elseif ($updates->isNotEmpty())
+                        <span class="text-emerald-400">All reported</span>
+                    @endif
+                </p>
+            </div>
+            <div class="grid gap-6 xl:grid-cols-2">
+                @forelse ($updates as $project => $remarks)
+                    <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                        <p class="mb-3 flex items-center gap-2 text-lg font-semibold"><x-icon :name="$project === \App\Support\DailyReport::STANDALONE ? 'tasks' : 'folder'" class="h-5 w-5 text-slate-400" /> {{ $project }}</p>
+                        <div class="space-y-3">
+                            @foreach ($remarks as $remark)
+                                @php($change = \App\Support\DailyReport::describeChange($updateChanges->get($remark->id)))
+                                <div class="flex gap-3">
+                                    <x-avatar :user="$remark->user" size="h-8 w-8 text-xs" />
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate font-medium">{{ $remark->task->title }} <span class="text-sm font-normal text-slate-400">· {{ $remark->user->name }} · {{ $remark->created_at->isToday() ? $remark->created_at->format('g:i A') : $remark->created_at->format('D g:i A') }}</span></p>
+                                        @if ($change)
+                                            <p class="text-sm text-indigo-300">{{ $change }}</p>
+                                        @endif
+                                        <p class="line-clamp-2 text-sm text-slate-300">{{ $remark->body }}</p>
+                                    </div>
+                                    @if ($remark->isReviewed())
+                                        <span class="h-fit shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-300">Reported</span>
+                                    @else
+                                        <span class="h-fit shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-300">Not reported</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-lg text-slate-400">No updates since {{ $updatesSince->format('l') }}.</p>
+                @endforelse
+            </div>
+        </section>
+
         {{-- Needs attention --}}
-        <section x-show="slide === 1" x-cloak class="grid gap-8 xl:grid-cols-2">
+        <section x-show="slide === 2" x-cloak class="grid gap-8 xl:grid-cols-2">
             <div>
                 <h2 class="mb-5 text-3xl font-semibold tracking-tight">Projects at risk or delayed</h2>
                 <div class="space-y-3">
@@ -50,28 +93,28 @@
                             <span class="text-2xl font-bold tabular-nums">{{ $project->progress }}%</span>
                         </div>
                     @empty
-                        <p class="text-lg text-slate-300">Every project is on track. 🎉</p>
+                        <p class="text-lg text-emerald-400">Every project is on track. 🎉</p>
                     @endforelse
                 </div>
             </div>
             <div>
-                <h2 class="mb-5 text-3xl font-semibold tracking-tight">Delayed tasks</h2>
+                <h2 class="mb-5 text-3xl font-semibold tracking-tight">Overdue tasks</h2>
                 <div class="space-y-2">
-                    @forelse ($delayedTasks as $task)
-                        <div class="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+                    @forelse ($overdueTasks as $task)
+                        <div class="flex items-center gap-3 rounded-xl bg-red-500/10 px-4 py-3">
                             <x-avatar :user="$task->assignee" size="h-8 w-8 text-xs" />
                             <div class="min-w-0 flex-1"><p class="truncate font-medium">{{ $task->title }}</p><p class="truncate text-sm text-slate-400">{{ $task->project?->name ?? 'Standalone' }} · {{ $task->assignee?->name ?? 'Unassigned' }}</p></div>
-                            <span class="text-sm font-medium text-slate-200">{{ $task->dueLabel() ?? 'Delayed' }}</span>
+                            <span class="text-sm font-medium text-red-300">{{ $task->dueLabel() ?? 'Overdue' }}</span>
                         </div>
                     @empty
-                        <p class="text-lg text-slate-300">No delayed tasks.</p>
+                        <p class="text-lg text-emerald-400">No overdue tasks.</p>
                     @endforelse
                 </div>
             </div>
         </section>
 
         {{-- Coming up --}}
-        <section x-show="slide === 2" x-cloak class="grid gap-8 xl:grid-cols-3">
+        <section x-show="slide === 3" x-cloak class="grid gap-8 xl:grid-cols-3">
             <div class="xl:col-span-2">
                 <h2 class="mb-5 text-3xl font-semibold tracking-tight">Due in the next 7 days</h2>
                 <div class="space-y-2">
@@ -103,12 +146,12 @@
         </section>
 
         {{-- Wins --}}
-        <section x-show="slide === 3" x-cloak>
+        <section x-show="slide === 4" x-cloak>
             <h2 class="mb-5 text-3xl font-semibold tracking-tight">Completed in the last 7 days</h2>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 @forelse ($wins as $task)
-                    <div class="flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
-                        <x-icon name="check-circle" class="h-6 w-6 text-slate-300" />
+                    <div class="flex items-center gap-3 rounded-xl bg-emerald-500/10 px-4 py-3">
+                        <x-icon name="check-circle" class="h-6 w-6 text-emerald-400" />
                         <div class="min-w-0 flex-1"><p class="truncate font-medium">{{ $task->title }}</p><p class="truncate text-sm text-slate-400">{{ $task->assignee?->name ?? '—' }} · {{ $task->project?->name ?? 'Standalone' }}</p></div>
                     </div>
                 @empty

@@ -8,7 +8,7 @@ use App\Support\Settings;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Automatic delay detection and deadline reminders.
+ * Deadline reminders, project health refreshes and expiring working sessions.
  *
  * Runs from the scheduler (tasks:check-deadlines) and, so the app stays current where cron is
  * missing, after signed-in requests at most once every 5 minutes.
@@ -16,17 +16,15 @@ use Illuminate\Support\Facades\Cache;
 class DeadlineService
 {
     public function __construct(
-        private readonly TaskService $tasks,
         private readonly ProjectHealthService $health,
         private readonly Notifier $notifier,
         private readonly CollaborationService $collaboration,
     ) {}
 
-    /** @return array{delayed: int, reminders: int, projects: int, sessions: int} */
+    /** @return array{reminders: int, projects: int, sessions: int} */
     public function run(): array
     {
         return [
-            'delayed' => $this->markOverdueTasksDelayed(),
             'reminders' => $this->sendDeadlineReminders(),
             'projects' => $this->health->refreshAll(),
             'sessions' => $this->collaboration->expireSessions(),
@@ -43,29 +41,6 @@ class DeadlineService
         $this->run();
 
         return true;
-    }
-
-    public function markOverdueTasksDelayed(): int
-    {
-        if (! Settings::bool('deadline.auto_delay_enabled')) {
-            return 0;
-        }
-
-        $count = 0;
-        Task::query()
-            ->whereIn('status', [TaskStatus::Pending->value, TaskStatus::InProgress->value])
-            ->whereNotNull('due_date')
-            ->whereDate('due_date', '<', today())
-            ->orderBy('depth', 'desc')
-            ->orderBy('id')
-            ->each(function (Task $task) use (&$count) {
-                if ($this->tasks->syncDelay($task)) {
-                    $this->tasks->afterChange($task);
-                    $count++;
-                }
-            });
-
-        return $count;
     }
 
     /** Remind the assignee and collaborators once per task per due date inside the due-soon window. */

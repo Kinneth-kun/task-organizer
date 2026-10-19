@@ -14,8 +14,8 @@ use App\Models\Task;
 use App\Models\TaskUpdate;
 use App\Models\User;
 use App\Support\Audit;
-use App\Support\Settings;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -29,10 +29,9 @@ use Illuminate\Validation\ValidationException;
  *  - one primary assignee (never an administrator or executive) plus collaborators; the task's
  *    department follows its assignee, else its creator
  *  - status ⇄ progress: 0% Pending, 1–99% In Progress, 100% Completed
- *  - a parent's progress is the average of its non-cancelled children and its status follows
- *    them; changes roll up level by level to the project
+ *  - a task is Pending, In Progress or Completed; a parent's progress is the average of its
+ *    children and its status follows them; changes roll up level by level to the project
  *  - every status, progress, remark, assignment and detail change writes append-only history
- *  - overdue open tasks become Delayed; rescheduling clears an automatic delay
  */
 class TaskService
 {
@@ -58,6 +57,7 @@ class TaskService
                 if (! $parent || ! $parent->canHaveChildren()) {
                     throw ValidationException::withMessages(['parent_id' => 'Subtasks can be nested at most '.(config('organizer.max_task_depth') + 1).' levels deep.']);
                 }
+                self::assertSubtaskDates($data['start_date'] ?? null, $data['due_date'] ?? null);
             }
 
             // A subtask always lives in its parent's project.
@@ -122,7 +122,6 @@ class TaskService
                 $this->addCollaborator($task, (int) $userId, $actor);
             }
 
-            $this->syncDelay($task->refresh());
             $this->afterChange($task, $actor);
 
             return $task->refresh();
@@ -161,13 +160,6 @@ class TaskService
 
             [$newStatus, $newProgress] = self::resolve($oldStatus, $oldProgress, $requestedStatus, $requestedProgress);
 
-            // Choosing Pending / In Progress on an overdue task keeps it Delayed.
-            $beforeDelay = null;
-            if ($newStatus->canAutoDelay() && $this->shouldBeDelayed($task)) {
-                $beforeDelay = $newStatus;
-                $newStatus = TaskStatus::Delayed;
-            }
-
             $statusChanged = $newStatus !== $oldStatus;
             $progressChanged = $newProgress !== $oldProgress;
 
@@ -178,7 +170,7 @@ class TaskService
             $task->forceFill([
                 'status' => $newStatus,
                 'progress' => $newProgress,
-                ...$this->statusSideFields($task, $newStatus, $oldStatus, $beforeDelay),
+                ...$this->statusSideFields($task, $newStatus),
                 ...($remark !== null ? ['latest_remark' => $remark] : []),
                 'latest_update_at' => now(),
                 'latest_update_by' => $actor->id,
@@ -197,7 +189,6 @@ class TaskService
                 $statusChanged || $progressChanged ? TaskUpdateType::Update : TaskUpdateType::Remark,
                 $oldStatus, $newStatus, $oldProgress, $newProgress, $remark,
                 array_filter([
-                    'requested_status' => $beforeDelay?->value,
                     'remark_id' => $remarkModel?->id,
                     'proof_count' => $proof ? count($proof) : null,
                 ]),
@@ -280,6 +271,10 @@ class TaskService
                 return $task;
             }
 
+            if ($task->parent_id && (isset($changes['start_date']) || isset($changes['due_date']))) {
+                self::assertSubtaskDates($this->plain($task->start_date), $this->plain($task->due_date));
+            }
+
             // Only a completed project's top-level work has a type; build tasks never get one and
             // subtasks follow their parent.
             if (isset($changes['category']) && ($task->parent_id || ! $task->project?->isCompleted())) {
@@ -328,10 +323,6 @@ class TaskService
                         $this->notifier->taskAssigned($task, $new, $actor);
                     }
                 }
-            }
-
-            if (isset($changes['due_date'])) {
-                $this->syncDelay($task->refresh());
             }
 
             $this->afterChange($task, $actor);
@@ -411,14 +402,13 @@ class TaskService
     /* ================================================================== Roll-up */
 
     /**
-     * Set a parent's progress to the average of its non-cancelled children and its status to match
-     * (0% Pending, 1–99% In Progress, 100% Completed; Delayed when overdue). On Hold and Cancelled
-     * parents keep their status. A parent with no children left is left as it is.
+     * Set a parent's progress to the average of its children and its status to match (0% Pending,
+     * 1–99% In Progress, 100% Completed). A parent with no children left is left as it is.
      */
     public function rollUp(Task $parent, ?User $actor = null): void
     {
         $parent->refresh();
-        $children = Task::query()->where('parent_id', $parent->id)->where('status', '!=', TaskStatus::Cancelled->value);
+        $children = Task::query()->where('parent_id', $parent->id);
         if (! $children->exists()) {
             return;
         }
@@ -427,19 +417,13 @@ class TaskService
         $oldProgress = $parent->progress;
         $progress = self::clampProgress((int) round((float) $children->avg('progress')));
 
-        $status = $oldStatus;
-        if (! in_array($oldStatus, [TaskStatus::OnHold, TaskStatus::Cancelled], true)) {
-            $status = TaskStatus::fromProgress($progress);
-            if ($status->canAutoDelay() && $this->shouldBeDelayed($parent)) {
-                $status = TaskStatus::Delayed;
-            }
-        }
+        $status = TaskStatus::fromProgress($progress);
 
         if ($status === $oldStatus && $progress === $oldProgress) {
             return;
         }
 
-        $parent->forceFill(['status' => $status, 'progress' => $progress, ...$this->statusSideFields($parent, $status, $oldStatus, null)])->save();
+        $parent->forceFill(['status' => $status, 'progress' => $progress, ...$this->statusSideFields($parent, $status)])->save();
         $this->record($parent, $actor, TaskUpdateType::Rollup, $oldStatus, $status, $oldProgress, $progress);
 
         if ($status === TaskStatus::Completed && $oldStatus !== TaskStatus::Completed) {
@@ -466,49 +450,23 @@ class TaskService
         }
     }
 
-    /* ================================================================== Delays */
-
-    public function shouldBeDelayed(Task $task): bool
-    {
-        return Settings::bool('deadline.auto_delay_enabled')
-            && $task->due_date !== null
-            && $task->due_date->lt(today());
-    }
-
-    /** Apply or clear the automatic Delayed status from the due date. Returns true on a change. */
-    public function syncDelay(Task $task): bool
-    {
-        $status = $task->status;
-
-        if ($status->canAutoDelay() && $this->shouldBeDelayed($task)) {
-            DB::transaction(function () use ($task, $status) {
-                $task->forceFill(['status_before_delay' => $status, 'status' => TaskStatus::Delayed, 'delayed_at' => now()])->save();
-                $this->record($task, null, TaskUpdateType::AutoDelayed, $status, TaskStatus::Delayed, $task->progress, $task->progress, meta: [
-                    'due_date' => $task->due_date?->toDateString(),
-                ]);
-                Audit::log('task.delayed', "\"{$task->title}\" was automatically marked Delayed (due {$task->due_date->format('M j, Y')})", $task, [], false);
-                $this->notifier->taskDelayed($task);
-            });
-
-            return true;
-        }
-
-        // Rescheduled → back to the progress-driven status. A manually chosen Delayed (no
-        // delayed_at from the automatic check) is never cleared here.
-        if ($status === TaskStatus::Delayed && $task->delayed_at !== null && ! $this->shouldBeDelayed($task)) {
-            $restored = TaskStatus::fromProgress(min($task->progress, 99));
-            $task->forceFill(['status' => $restored, 'status_before_delay' => null, 'delayed_at' => null])->save();
-            $this->record($task, null, TaskUpdateType::Undelayed, TaskStatus::Delayed, $restored, $task->progress, $task->progress, meta: [
-                'due_date' => $task->due_date?->toDateString(),
-            ]);
-
-            return true;
-        }
-
-        return false;
-    }
-
     /* ================================================================== Status rules */
+
+    /** Every subtask has a start date and an end (due) date, and ends on or after it starts. */
+    public static function assertSubtaskDates(mixed $start, mixed $due): void
+    {
+        $errors = array_filter([
+            'start_date' => blank($start) ? 'A subtask needs a start date.' : null,
+            'due_date' => blank($due) ? 'A subtask needs an end date.' : null,
+        ]);
+        if (! $errors && Carbon::parse($due)->startOfDay()->lt(Carbon::parse($start)->startOfDay())) {
+            $errors['due_date'] = 'The end date must be on or after the start date.';
+        }
+
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
 
     public static function clampProgress(int|string|float|null $value): int
     {
@@ -526,13 +484,12 @@ class TaskService
             TaskStatus::Pending => [$status, 0],
             TaskStatus::Completed => [$status, 100],
             TaskStatus::InProgress => [$status, max(1, min(99, $progress))],
-            default => [$status, $progress],
         };
     }
 
     /**
      * The status and progress after a request. An explicit status wins and progress is adjusted
-     * to match; progress alone moves the status (Delayed / On Hold stay unless it reaches 100%).
+     * to match; progress alone moves the status.
      *
      * @return array{0: TaskStatus, 1: int}
      */
@@ -546,11 +503,7 @@ class TaskService
             return [$oldStatus, $oldProgress];
         }
 
-        return match ($oldStatus) {
-            TaskStatus::Pending, TaskStatus::InProgress, TaskStatus::Completed => [TaskStatus::fromProgress($progress), $progress],
-            TaskStatus::Delayed, TaskStatus::OnHold => [$progress >= 100 ? TaskStatus::Completed : $oldStatus, $progress],
-            default => [$oldStatus, $progress],
-        };
+        return [TaskStatus::fromProgress($progress), $progress];
     }
 
     /* ================================================================== Internals */
@@ -584,21 +537,9 @@ class TaskService
     }
 
     /** @return array<string, mixed> */
-    private function statusSideFields(Task $task, TaskStatus $newStatus, TaskStatus $oldStatus, ?TaskStatus $beforeDelay): array
+    private function statusSideFields(Task $task, TaskStatus $newStatus): array
     {
-        $fields = ['completed_at' => $newStatus === TaskStatus::Completed ? ($task->completed_at ?? now()) : null];
-
-        if ($newStatus === TaskStatus::Delayed) {
-            if ($oldStatus !== TaskStatus::Delayed) {
-                $fields['delayed_at'] = now();
-                $fields['status_before_delay'] = $beforeDelay ?? $oldStatus;
-            }
-        } else {
-            $fields['delayed_at'] = null;
-            $fields['status_before_delay'] = null;
-        }
-
-        return $fields;
+        return ['completed_at' => $newStatus === TaskStatus::Completed ? ($task->completed_at ?? now()) : null];
     }
 
     /** @param  array<string, mixed>  $meta */

@@ -85,7 +85,7 @@ class TaskPolicy
             : $this->edit($user, $task);
     }
 
-    /** Mark other people's remarks on this task as reviewed. */
+    /** Mark other people's updates on this task as reported in the daily meeting. */
     public function reviewRemarks(User $user, Task $task): bool
     {
         return $user->hasFullAccess() || $this->manages($user, $task);

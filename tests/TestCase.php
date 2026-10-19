@@ -23,6 +23,12 @@ abstract class TestCase extends BaseTestCase
         return Department::query()->firstOrCreate(['code' => $code], ['name' => $code.' Department', 'color' => 'sky']);
     }
 
+    /** The start and end dates every subtask needs. */
+    protected function subtaskDates(int $days = 7): array
+    {
+        return ['start_date' => today()->toDateString(), 'due_date' => today()->addDays($days)->toDateString()];
+    }
+
     protected function person(UserRole $role = UserRole::Member, ?Department $department = null, array $attributes = []): User
     {
         return User::factory()->role($role)->create([

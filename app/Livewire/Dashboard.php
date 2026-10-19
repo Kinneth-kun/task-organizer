@@ -59,7 +59,7 @@ class Dashboard extends Component
         $remark = Remark::with('task')->findOrFail($remarkId);
         $this->authorize('review', $remark);
         $collaboration->review($remark, auth()->user());
-        $this->toast('Marked as reviewed.');
+        $this->toast('Marked as reported.');
     }
 
     public function stopWorking(CollaborationService $collaboration): void
