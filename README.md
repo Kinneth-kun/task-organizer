@@ -50,6 +50,16 @@ Requirements: PHP 8.2+ with `pdo_mysql`, `fileinfo` and `mbstring` · Composer 2
 
 Open <http://127.0.0.1:8000> and sign in with the administrator from `.env`.
 
+### Demo data (optional)
+
+To fill the app with sample people, projects and tasks for a demonstration, run:
+
+```bash
+php artisan db:seed --class=DemoSeeder
+```
+
+It adds 19 people across all departments and six projects, one in each health state (on track, at risk, delayed, on hold, completed). Each project comes with tasks and subtasks, about three months of history, remarks, comments and notifications. Every demo account (for example `maria.reyes`, a manager, or `ricardo.santos`, the executive) signs in with `DEMO_PASSWORD` from `.env`, or with the default in `database/seeders/DemoSeeder.php`. It only runs once. To start over, run `php artisan migrate:fresh --seed` and then the command above.
+
 For development with hot reload, run this instead of `serve` + `build`:
 
 ```bash
