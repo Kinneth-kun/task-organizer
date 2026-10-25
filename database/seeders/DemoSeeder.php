@@ -166,9 +166,9 @@ class DemoSeeder extends Seeder
                         ['title' => 'Tenant database API', 'assignee' => 'john.cruz', 'due' => -2,
                             'log' => [[18, 40, 'Endpoints for tenants and categories done.'], [10, 100, 'API deployed to staging.', true]]],
                         ['title' => 'Search and category filters', 'assignee' => 'john.cruz', 'due' => 6,
-                            'log' => [[8, 30], [3, 65, 'Search works; filter by floor still pending.']]],
+                            'log' => [[8, 30], [3, 65, 'Search works; filter by floor still pending.'], [0, 80, 'Filter by floor is done; testing on phones now.']]],
                         ['title' => 'Interactive floor map', 'assignee' => 'paolo.garcia', 'due' => 10,
-                            'log' => [[5, 20, 'Exported the floor plans to SVG.']]],
+                            'log' => [[5, 20, 'Exported the floor plans to SVG.'], [0, 35, 'Floors 1 and 2 are clickable; store pop-ups next.']]],
                     ]],
                 ['title' => 'Content migration from the old site', 'assignee' => 'paolo.garcia', 'start' => -15, 'due' => -3, 'at' => 15,
                     'log' => [[12, 20, 'Started copying tenant pages.'], [6, 45, 'About half of the store pages are migrated.']]],
@@ -192,7 +192,7 @@ class DemoSeeder extends Seeder
                 ['title' => 'Update vacant units list and floor plans', 'assignee' => 'sofia.aquino', 'due' => -30, 'at' => 40,
                     'log' => [[38, 50], [33, 100, 'All 14 vacant units documented with photos.', true]]],
                 ['title' => 'Prepare leasing brochure', 'assignee' => 'kevin.tan', 'collaborators' => ['bea.villanueva'], 'due' => -10, 'at' => 35,
-                    'log' => [[30, 30, 'Draft layout ready.'], [20, 60], [12, 90, 'Waiting for the final rental rates from Leasing.']],
+                    'log' => [[30, 30, 'Draft layout ready.'], [20, 60], [12, 90, 'Waiting for the final rental rates from Leasing.'], [0, null, 'Still waiting on the rental rates; everything else is print-ready.']],
                     'comments' => [
                         [11, 'kevin.tan', '@daniel.ramos we still need the final rental rates to finish the brochure.'],
                         [9, 'daniel.ramos', 'The rates are with Accounting for approval — expect them this week.'],
@@ -200,7 +200,7 @@ class DemoSeeder extends Seeder
                 ['title' => 'Contact prospective tenants', 'assignee' => 'sofia.aquino', 'priority' => 'urgent', 'due' => 14, 'at' => 30,
                     'subtasks' => [
                         ['title' => 'Food and beverage brands', 'assignee' => 'sofia.aquino', 'due' => 5,
-                            'log' => [[25, 20], [14, 50, 'Met with 3 coffee chains; 2 are interested.'], [4, 70]]],
+                            'log' => [[25, 20], [14, 50, 'Met with 3 coffee chains; 2 are interested.'], [4, 70], [0, 85, 'Signed a letter of intent with a coffee chain for unit G-12.', true]]],
                         ['title' => 'Retail and fashion brands', 'assignee' => 'sofia.aquino', 'due' => 10,
                             'log' => [[20, 10], [8, 35]]],
                         ['title' => 'Services (banks, clinics, salons)', 'assignee' => 'sofia.aquino', 'due' => -4,
@@ -230,7 +230,7 @@ class DemoSeeder extends Seeder
                         ['title' => 'Level B1 installation', 'assignee' => 'joel.navarro', 'due' => -20,
                             'log' => [[30, 50], [22, 100, 'All 18 cameras on B1 are online.']]],
                         ['title' => 'Level B2 installation', 'assignee' => 'joel.navarro', 'due' => -10,
-                            'log' => [[18, 30], [9, 55, 'The supplier delayed delivery of 6 cameras.']]],
+                            'log' => [[18, 30], [9, 55, 'The supplier delayed delivery of 6 cameras.'], [0, 80, 'The last 6 cameras arrived; 4 are installed so far.', true]]],
                     ]],
                 ['title' => 'Upgrade NVR storage to 60 days', 'assignee' => 'angela.lim', 'due' => -3, 'at' => 30,
                     'log' => [[20, 40], [10, 60]]],
@@ -279,9 +279,9 @@ class DemoSeeder extends Seeder
                 ['title' => 'Campaign concept and theme', 'assignee' => 'bea.villanueva', 'collaborators' => ['kevin.tan'], 'due' => -2, 'at' => 12,
                     'log' => [[10, 50, 'Shortlisted 3 themes.'], [3, 100, '"Season of Giving" theme approved by @ricardo.santos.']]],
                 ['title' => 'Holiday decor installation plan', 'assignee' => 'tess.ocampo', 'due' => 15, 'at' => 8,
-                    'log' => [[4, 20, 'Sourcing quotes for the centre-court tree.']]],
+                    'log' => [[4, 20, 'Sourcing quotes for the centre-court tree.'], [0, 40, 'Got 3 quotes for the centre-court tree; recommending the mid-range one.']]],
                 ['title' => 'Social media content calendar', 'assignee' => 'bea.villanueva', 'due' => 8, 'at' => 7,
-                    'log' => [[2, 25]]],
+                    'log' => [[2, 25], [0, 50, 'The first two weeks of posts are drafted.']]],
                 ['title' => 'Secure raffle permit', 'assignee' => 'victor.aguilar', 'priority' => 'urgent', 'due' => 12, 'at' => 5],
                 ['title' => 'Tenant promo partnerships', 'assignee' => 'sofia.aquino', 'due' => 20, 'at' => 6],
             ],
@@ -358,7 +358,7 @@ class DemoSeeder extends Seeder
         $standalone = [
             'maria.reyes' => [
                 ['title' => 'Renew SSL certificates', 'assignee' => 'maria.reyes', 'priority' => 'high', 'due' => 3, 'at' => 6,
-                    'log' => [[1, 50, 'Main site renewed; the mail server is next.']]],
+                    'log' => [[1, 50, 'Main site renewed; the mail server is next.'], [0, 100, 'The mail server certificate is renewed too. All done.']]],
                 ['title' => 'Quarterly IT asset inventory', 'assignee' => 'paolo.garcia', 'due' => 14, 'at' => 4],
             ],
             'grace.torres' => [
@@ -392,8 +392,9 @@ class DemoSeeder extends Seeder
 
     /**
      * Queue a task with its updates, comments and subtasks. An update is [days ago, progress or
-     * status or null for a note only, remark, reviewed?] and is made by the assignee; `true` as
-     * the fourth element has the supervisor mark that remark reported a day later. Subtasks need
+     * status or null for a note only, remark, reviewed?] (0 days ago = today) and is made by the
+     * assignee; `true` as the fourth element has the supervisor mark that remark reported the next
+     * day, or later the same day for today's. Subtasks need
      * both dates, so they start with their parent (or the day they were added) unless given one.
      *
      * @param  array<string, mixed>  $spec
@@ -441,7 +442,7 @@ class DemoSeeder extends Seeder
             });
 
             if ($review && $remark) {
-                $this->at(max($daysAgo - 1, 1), function () use ($key, $supervisor) {
+                $this->at(max($daysAgo - 1, 0), function () use ($key, $supervisor) {
                     $remark = Remark::find($this->remarkIds[$key] ?? 0);
                     if ($remark) {
                         $this->collaboration->review($remark, $this->user($supervisor));
@@ -505,20 +506,34 @@ class DemoSeeder extends Seeder
         $this->events[] = [$daysAgo, count($this->events), $action];
     }
 
-    /** Run every queued action in time order with the clock set to its moment (working hours). */
+    /**
+     * Run every queued action in time order with the clock set to its moment: working hours on
+     * past days, and spread between this morning and now for today, so nothing is in the future.
+     */
     private function replay(): void
     {
         usort($this->events, fn ($a, $b) => [$b[0], $a[1]] <=> [$a[0], $b[1]]);
 
+        $now = now();
+        $morning = $this->today->copy()->setTime(8, 0);
+        $todayStart = $morning->lt($now->copy()->subHour()) ? $morning : $this->today->copy();
+        $todayCount = count(array_filter($this->events, fn ($event) => $event[0] === 0));
+        $todayIndex = 0;
+
         $day = null;
         $minutes = 0;
         foreach ($this->events as [$daysAgo, $order, $action]) {
-            if ($daysAgo !== $day) {
-                [$day, $minutes] = [$daysAgo, 8 * 60 + 10];
+            if ($daysAgo === 0) {
+                $seconds = (int) abs($todayStart->diffInSeconds($now)) * ++$todayIndex / ($todayCount + 1);
+                Carbon::setTestNow($todayStart->copy()->addSeconds((int) $seconds));
+            } else {
+                if ($daysAgo !== $day) {
+                    [$day, $minutes] = [$daysAgo, 8 * 60 + 10];
+                }
+                $minutes += ($order * 17) % 33 + 9;
+                Carbon::setTestNow($this->today->copy()->subDays($daysAgo)->addMinutes($minutes));
             }
-            $minutes += ($order * 17) % 33 + 9;
 
-            Carbon::setTestNow($this->today->copy()->subDays($daysAgo)->addMinutes($minutes));
             $action();
         }
     }
