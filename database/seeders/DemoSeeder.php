@@ -173,7 +173,7 @@ class DemoSeeder extends Seeder
                 ['title' => 'Content migration from the old site', 'assignee' => 'paolo.garcia', 'start' => -15, 'due' => -3, 'at' => 15,
                     'log' => [[12, 20, 'Started copying tenant pages.'], [6, 45, 'About half of the store pages are migrated.']]],
                 ['title' => 'Live chat widget', 'assignee' => 'john.cruz', 'priority' => 'low', 'due' => 20, 'at' => 30,
-                    'log' => [[21, 'cancelled', 'Dropped — Marketing will answer inquiries through Messenger instead.']]],
+                    'log' => [[21, null, 'Parked for now — Marketing will try answering inquiries through Messenger first.']]],
                 ['title' => 'Events and promotions page', 'assignee' => 'john.cruz', 'start' => 2, 'due' => 18, 'at' => 25],
                 ['title' => 'Website performance and SEO audit', 'assignee' => 'angela.lim', 'priority' => 'low', 'start' => 15, 'due' => 25, 'at' => 20],
                 ['title' => 'Tenant inquiry form on the Leasing page', 'assignee' => 'john.cruz', 'collaborators' => ['sofia.aquino'], 'start' => 10, 'due' => 22, 'at' => 13],
@@ -293,7 +293,7 @@ class DemoSeeder extends Seeder
             'owner' => 'roberto.dizon', 'priority' => 'medium', 'color' => 'emerald', 'start' => -30, 'due' => 35, 'at' => 31,
             'tasks' => [
                 ['title' => 'Collect department budget requests', 'assignee' => 'ella.morales', 'due' => -12, 'at' => 30,
-                    'log' => [[25, 40], [15, 80, '6 of 8 departments have submitted.'], [9, 'on_hold', 'Paused until the GM confirms the 2027 revenue targets.']]],
+                    'log' => [[25, 40], [15, 80, '6 of 8 departments have submitted.'], [9, null, 'Paused until the GM confirms the 2027 revenue targets.']]],
                 ['title' => 'Review utilities and maintenance costs', 'assignee' => 'ella.morales', 'due' => 10, 'at' => 20,
                     'log' => [[14, 30]]],
                 ['title' => 'Draft consolidated budget', 'assignee' => 'roberto.dizon', 'due' => 30, 'at' => 20],
@@ -391,15 +391,21 @@ class DemoSeeder extends Seeder
     /* ================================================================== Tasks */
 
     /**
-     * Queue a task with its updates, comments and subtasks. Updates are made by the assignee;
-     * a `true` fourth element in an update has the supervisor review that remark a day later.
+     * Queue a task with its updates, comments and subtasks. An update is [days ago, progress or
+     * status or null for a note only, remark, reviewed?] and is made by the assignee; `true` as
+     * the fourth element has the supervisor mark that remark reported a day later. Subtasks need
+     * both dates, so they start with their parent (or the day they were added) unless given one.
      *
      * @param  array<string, mixed>  $spec
      */
-    private function task(array $spec, ?string $project, ?string $parent, string $supervisor, int $defaultAt): void
+    private function task(array $spec, ?string $project, ?string $parent, string $supervisor, int $defaultAt, ?int $parentStart = null): void
     {
         $title = $spec['title'];
         $createdAt = $spec['at'] ?? $defaultAt;
+
+        if ($parent) {
+            $spec['start'] ??= min($parentStart ?? -$createdAt, $spec['due'] ?? 0);
+        }
 
         $this->at($createdAt, function () use ($spec, $title, $project, $parent, $supervisor) {
             $this->taskIds[$title] = $this->tasks->create([
@@ -449,16 +455,16 @@ class DemoSeeder extends Seeder
         }
 
         foreach ($spec['subtasks'] ?? [] as $subtask) {
-            $this->task($subtask, $project, $title, $supervisor, $createdAt);
+            $this->task($subtask, $project, $title, $supervisor, $createdAt, $spec['start'] ?? null);
         }
     }
 
     /* ================================================================== Today */
 
     /**
-     * Back in the present: run the deadline sweep (overdue → Delayed, due-soon reminders, project
-     * health), then add the live touches — pinned focus tasks, "working on" sessions, read
-     * notifications and recent sign-ins.
+     * Back in the present: run the deadline sweep (due-soon reminders, project health), then add
+     * the live touches — pinned focus tasks, "working on" sessions, read notifications and recent
+     * sign-ins.
      */
     private function finishToday(): void
     {
