@@ -1,0 +1,138 @@
+# Voiceover script for task-organizer-demo-full.mp4
+# Format: start time in seconds | line spoken
+# Times match the on-screen captions. Part 2 of the original recording starts at 368.6s.
+
+1.9|Task Organizer: an action plan and task tracker for every department.
+7.1|Part one: the department manager. We'll follow three people: a department manager, a team member, and the administrator.
+17.0|Signing in as Jamie Reyes, the IT department manager.
+25.5|The dashboard is each person's home: what needs attention today, at a glance.
+29.8|Live counters show open, overdue and due-today tasks, and remarks to review.
+34.7|Currently working shows who has pressed Start, live.
+38.9|Delayed or at-risk projects surface automatically.
+43.7|Below: the Focus of the Day, and the manager's open work.
+49.5|Projects lists every initiative, with owner, deadline, progress, and an automatic health status.
+55.8|Each project shows its progress, health, and why, computed from its tasks.
+60.4|Tasks nest into subtasks, and progress rolls up automatically.
+65.4|Here's the same work as a board, grouped by status.
+71.7|The team tab manages members and project managers.
+75.8|The overview holds the description, dates, and key facts.
+81.0|Creating a project takes one form: details, team, and a first set of tasks.
+97.5|Pick the team. Each member can be a regular member or a project manager.
+103.7|And sketch the first tasks, with subtasks one per line.
+116.5|The project is live, with its tasks, subtasks and team already in place.
+125.9|New task, in the top bar, captures work from anywhere in two seconds.
+136.4|It's created and assigned to Jamie, with a due date three days out.
+143.6|The calendar lays every deadline out by month.
+149.1|Step forward to plan the coming weeks.
+153.7|Search covers tasks, projects and comments in one place.
+160.0|Part two: the team member. Miguel Tan, a developer on the portal project, updates his tasks and attaches proof of work.
+167.5|Signing in as Miguel Tan, software developer.
+176.6|My Tasks lists everything assigned to Miguel, with views for today, overdue, and more.
+182.8|A task page shows details, subtasks, collaborators, files, and the full history.
+189.6|Pressing Start tells the team Miguel is working on it right now.
+193.4|Progress updates are the heart of the app: status, percentage, a remark, and proof.
+204.6|A screenshot is attached as proof of work.
+208.4|Saved. The parent task and the project progress update instantly, and Jamie is notified.
+215.0|Every change is kept in the task's history: who changed what, and when.
+227.4|Comments keep the discussion attached to the work.
+233.4|Part three: review and follow-up. Back as Jamie: notifications, mentions, and reviewing remarks.
+240.0|Signing in as Jamie Reyes.
+250.3|The bell shows Miguel's mention and update straight away.
+254.8|The notification centre keeps the full list: mentions, assignments, deadlines, and reviews.
+260.9|Back on the dashboard, remarks waiting for review are counted at the top,
+266.0|and listed under Latest remarks. Jamie marks Miguel's update as reviewed.
+272.0|Reviewed. Miguel sees that his manager has checked the work.
+277.5|Part four: administration and oversight. The administrator sees every department, runs meetings, and manages users and settings.
+285.0|Signing in as the administrator.
+294.5|The executive dashboard: portfolio health, task distribution, and work by department.
+301.9|Every project in the portfolio, with health, progress, and deadline.
+306.5|Meeting mode is a full-screen view for status meetings, refreshed every minute.
+313.0|Projects at risk and delayed tasks, so the meeting starts with what is slipping.
+318.1|Upcoming project deadlines.
+323.6|And recent wins, to close on what got done.
+328.7|The activity log records every change across the organisation, for accountability.
+334.6|Administrators manage accounts, roles, and departments. The roles are admin, executive, manager, member, and intern.
+341.3|Departments are managed here.
+346.2|Organisation-wide settings: deadline rules, project-health thresholds, the daily briefing, and sign-in security.
+356.8|Every screen also comes in a dark theme.
+361.4|Plan it. Track it. Prove it.
+370.5|Task Organizer, part two: the rest of the features.
+376.0|Chapter one: sign-in security. Accounts lock after repeated failed sign-ins.
+380.9|Someone keeps guessing Paolo's password.
+389.0|The eye button shows what you typed, handy on a phone.
+395.9|A wrong password gets a generic message that never reveals whether the account exists.
+405.0|Failed attempt two of five.
+413.3|Attempt three.
+421.0|Attempt four.
+428.3|Attempt five.
+430.0|Five failures lock the account. Now the real Paolo arrives with the correct password,
+439.8|and is still refused: locked for fifteen minutes. Both numbers are admin settings, and an administrator can unlock it sooner. We'll do that later.
+451.0|Chapter two: tasks in depth. Signing in as Jamie Reyes.
+460.6|My Tasks has four views: assigned to me, assigned by me, everything I'm on, and everything visible to me.
+472.2|Filters combine freely: status, due date, priority, project, department, and sort order.
+477.6|Here: everything overdue, each marked with how many days late it is.
+484.1|Export CSV downloads exactly the list you're looking at, filters included, for Excel or reporting.
+492.6|Clear filters resets the view in one click.
+495.7|The full task form has every field the quick-create dialog leaves out.
+512.1|Dates can be typed, or set with shortcuts.
+516.1|Collaborators can see and update the task alongside the assignee, and are notified when added.
+524.3|Created and assigned to Paolo, with Carlo collaborating.
+529.2|Pin puts the task on Jamie's Focus of the Day.
+534.1|Break work down into subtasks, up to three levels deep, each with its own owner and dates.
+548.6|The parent now follows its subtasks: its status and progress roll up automatically.
+554.9|Collaborators can be added or removed from the task page too.
+561.4|Files attach to the task itself: drawings, quotes, photos. Downloads respect who can see the task.
+571.0|Typing the at sign suggests people. Pick one, and they get notified.
+579.2|Everything can be edited later. Changes are recorded in the task history.
+589.0|The edit shows up in the history straight away.
+597.9|Managers can also review a remark from the task itself,
+603.2|and the reviewer and time are stamped on it.
+606.8|Chapter three: projects in depth.
+612.5|Filter projects by status, health and department, or show only your own.
+623.2|Anyone who can see a project can suggest an idea or flag a risk, with attachments.
+633.5|Suggestions appear on the project card for the team to see.
+637.7|Tasks can be added straight from the project page.
+649.0|On the board, drag a card to another column to change its status.
+654.6|Moved to In Progress, and recorded in history. Cards with subtasks follow their subtasks.
+660.0|Add people from any department, and give them a project role.
+665.0|Roles change in place. Project managers can edit the project and manage its team.
+672.1|The menu holds Edit details, the status options, and Delete.
+677.1|Put on hold: health and the dashboards reflect it everywhere.
+691.1|After a project is completed, new work is logged as post-launch work: enhancements, bug fixes, and updates.
+699.6|A completed project can also be reopened if the scope grows.
+706.0|Chapter four: your day and your settings. Focus of the Day, department filters, the notification centre, the calendar, and profile preferences.
+715.9|The pinned task leads Focus of the Day, followed by overdue and due-today work.
+721.4|Not today hides an item until tomorrow.
+725.8|Managers can narrow the dashboard to one department.
+731.3|Each person's Activity Logs collect their notifications. Every weekday at 8 a.m., a daily briefing summarises the day ahead.
+740.5|Filter by type, or show unread only. Mark one read, mark all read, or clear the read ones.
+755.9|The calendar filters by project, by your own work, and can include completed tasks.
+769.7|Profile and preferences: personal details, password, and email notifications.
+777.8|In-app notifications always arrive. Email is per type, so everyone chooses what reaches their inbox.
+787.3|Passwords are changed here, after confirming the current one.
+793.0|Chapter five: administration.
+798.1|Signing in as the administrator.
+813.0|Filter by status to find locked accounts. Here is Paolo, locked by the failed sign-ins earlier.
+819.5|Unlocked: Paolo can sign in again straight away.
+825.9|New accounts are created by an administrator. There is no public sign-up.
+844.2|The role decides what they can see and do. Interns see only their own work and their projects.
+849.0|Lea is ready to sign in. Accounts can be deactivated, which signs the person out at once, and reactivated.
+865.2|Departments can be added, edited, deactivated, or deleted.
+879.0|Facilities is now available for people and projects.
+885.7|Settings take effect immediately. Here we rename the organisation,
+891.1|and these are the lockout rules we saw in chapter one.
+897.6|The audit trail filters by area, person, and date range.
+907.3|Paolo's failed sign-ins, the lockout, and the unlock are all on record, with IP addresses.
+913.5|Click a department to drill the whole dashboard down to it.
+919.8|Every figure now covers IT only. Portfolio CSV exports the project list.
+929.0|In meeting mode, the arrow keys move between sections, like slides, and it can go full screen.
+944.5|Chapter six: roles and permissions. Each role sees just what it should.
+949.5|Signing in as Carlo Lim, IT intern.
+959.5|An intern's menu has no oversight or admin pages.
+964.4|They see only projects they belong to, and cannot create projects.
+968.5|Opening an admin address directly is refused.
+977.8|Signing in as Victoria Santos, executive.
+987.3|An executive sees every department, the executive dashboard, and the audit trail,
+991.5|but user administration and settings remain administrator-only.
+1000.4|Behind the scenes: deadline reminders and health refreshes run every fifteen minutes, and a daily briefing goes out every weekday morning.
+1008.0|Thanks for watching.
